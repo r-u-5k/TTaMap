@@ -1,9 +1,9 @@
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.http import JsonResponse
+from .services import fetch_public_transport_path
 
-# Create your views here.
-def main(request):
-    message = request.GET.get('message')
-    print(message)
-
-    return HttpResponse("Hello")
+def get_path(request):
+    try:
+        data = fetch_public_transport_path()
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
