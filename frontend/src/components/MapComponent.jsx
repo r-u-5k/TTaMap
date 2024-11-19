@@ -1,5 +1,6 @@
 /* global naver */
 import React, { useEffect } from 'react';
+const api_key = "Jik3kwz85G7Q08Aq0HRnUVStZz0mtWz0OgS%2B610Ykf8"
 
 const MapComponent = () => {
     useEffect(() => {
@@ -18,7 +19,7 @@ const MapComponent = () => {
 
             const searchPubTransPathAJAX = () => {
                 const xhr = new XMLHttpRequest();
-                const url = `https://api.odsay.com/v1/api/searchPubTransPathT?SX=${sx}&SY=${sy}&EX=${ex}&EY=${ey}&apiKey=Jik3kwz85G7Q08Aq0HRnUVStZz0mtWz0OgS%2B610Ykf8`;
+                const url = `https://api.odsay.com/v1/api/searchPubTransPathT?SX=${sx}&SY=${sy}&EX=${ex}&EY=${ey}&apiKey=${api_key}`;
                 xhr.open('GET', url, true);
                 xhr.send();
                 xhr.onreadystatechange = () => {
@@ -31,7 +32,7 @@ const MapComponent = () => {
 
             const callMapObjApiAJAX = (mapObj) => {
                 const xhr = new XMLHttpRequest();
-                const url = `https://api.odsay.com/v1/api/loadLane?mapObject=0:0@${mapObj}&apiKey=Jik3kwz85G7Q08Aq0HRnUVStZz0mtWz0OgS+610Ykf8`;
+                const url = `https://api.odsay.com/v1/api/loadLane?mapObject=0:0@${mapObj}&apiKey=${api_key}`;
                 xhr.open('GET', url, true);
                 xhr.send();
                 xhr.onreadystatechange = () => {
