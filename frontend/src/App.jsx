@@ -1,11 +1,30 @@
+import logo from './logo.svg';
 import './App.css';
 import { NavermapsProvider } from 'react-naver-maps';
 import { Routes, Route, Link } from 'react-router-dom';
 import React, { Suspense } from 'react';
-import MyMap from './components/MapComponent';
+import LoadMap from './components/MapComponent';
+import CardExpiration from './components/CardComponent';
 
 function Home() {
-  return <h1>Home Page</h1>;
+    return (
+        <div className="App">
+          <header className="App-header">
+            <img src={logo} className="App-logo" alt="logo" />
+            <p>
+              Edit <code>src/App.js</code> and save to reload.
+            </p>
+            <a
+              className="App-link"
+              href="https://reactjs.org"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Learn React
+            </a>
+          </header>
+        </div>
+      );
 }
 
 function App() {
@@ -21,6 +40,9 @@ function App() {
             <li>
               <Link to='/map'>지도</Link>
             </li>
+            <li>
+              <Link to='/card'>카드</Link>
+            </li>
           </ul>
         </nav>
 
@@ -28,7 +50,8 @@ function App() {
         <Suspense fallback={<div>로딩 중...</div>}>
           <Routes>
             <Route path='/' element={<Home />} />
-            <Route path='/map' element={<MyMap />} />
+            <Route path='/map' element={<LoadMap />} />
+            <Route path='/card' element={<CardExpiration />} />
           </Routes>
         </Suspense>
       </div>
