@@ -18,7 +18,7 @@ function LoadMap() {
   return (
     <MapDiv style={{ width: '100%', height: '600px' }}>
       <NaverMap
-        defaultCenter={new navermaps.LatLng(37.5408, 127.0766)} // 서울 위도, 경도
+        defaultCenter={new navermaps.LatLng(37.5408, 127.0766)}
         defaultZoom={16}
       />
     </MapDiv>
