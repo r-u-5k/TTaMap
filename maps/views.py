@@ -1,9 +1,4 @@
-from django.http import JsonResponse
-from .services import fetch_public_transport_path
+from django.http import HttpResponseRedirect
 
-def get_path(request):
-    try:
-        data = fetch_public_transport_path()
-        return JsonResponse(data)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+def map_view(request):
+    return HttpResponseRedirect('http://localhost:3000/maps')
