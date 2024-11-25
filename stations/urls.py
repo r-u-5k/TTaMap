@@ -2,5 +2,5 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('', views.map_view, name='map_view'),
+    path('near-stations/', views.get_near_stations, name='near_stations'),
 ]
