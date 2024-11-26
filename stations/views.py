@@ -3,17 +3,16 @@ from django.http import JsonResponse
 from geopy.distance import geodesic
 
 import params as pa
-from .services import geocoding
-
 
 def get_near_stations(request):
     # 출발지 주소
-    address = request.GET.get('address')
-    latitude, longitude = geocoding(address)
+    latitude = float(request.GET.get('latitude'))
+    longitude = float(request.GET.get('longitude'))
+
     departure_location = (latitude, longitude)
 
     # 따릉이 API 호출
-    url = f'http://openapi.seoul.go.kr:8088/{pa.tta_api_key}/json/bikeList/1/1000/'
+    url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1000/'
     response = requests.get(url)
     if response.status_code != 200:
         return JsonResponse({'error': '따릉이 API 호출 실패'}, status=500)

@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = pa.secret_key
+SECRET_KEY = pa.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -85,7 +85,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'ttamap',
         'USER': 'postgres',
-        'PASSWORD': pa.password,
+        'PASSWORD': pa.DB_PASSWORD,
         'HOST': 'localhost',
         'PORT': '5432',
     }
