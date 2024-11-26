@@ -1,9 +1,7 @@
-import requests
 from django.http import JsonResponse
 
-
-import params as pa
 from .services import *
+
 
 def get_near_stations(request):
     latitude = float(request.GET.get('lat'))
