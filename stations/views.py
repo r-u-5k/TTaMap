@@ -1,24 +1,10 @@
 import requests
-from geopy.distance import geodesic
 from django.http import JsonResponse
+from geopy.distance import geodesic
+
 import params as pa
+from .services import geocoding
 
-def geocoding(address):
-    url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode"
-    headers = {
-        "X-NCP-APIGW-API-KEY-ID": pa.naver_client_id,
-        "X-NCP-APIGW-API-KEY": pa.naver_client_secret
-    }
-    params = {"query": address}
-    response = requests.get(url, headers=headers, params=params)
-
-    if response.status_code == 200:
-        data = response.json()
-        if data['addresses']:
-            latitude = float(data['addresses'][0]['y'])
-            longitude = float(data['addresses'][0]['x'])
-            return latitude, longitude
-    return None, None
 
 def get_near_stations(request):
     # 출발지 주소
@@ -40,7 +26,7 @@ def get_near_stations(request):
     for station in stations:
         station_location = (float(station['stationLatitude']), float(station['stationLongitude']))
         distance = geodesic(departure_location, station_location).meters
-        if distance <= 1000:  # 반경 1km 이내인지 확인
+        if distance <= 1000:
             within_1km.append({
                 'stationName': station['stationName'],
                 'latitude': station['stationLatitude'],
