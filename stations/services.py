@@ -4,6 +4,18 @@ from geopy.distance import geodesic
 import params as pa
 
 
+def fetch_all_stations_data():
+    url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1000/'
+    response = requests.get(url)
+    return response.json().get('rentBikeStatus', {}).get('row', [])
+
+
+def fetch_station_data(station_num):
+    url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1/{station_num}'
+    response = requests.get(url)
+    return response.json().get('rentBikeStatus', {}).get('row', [])
+
+
 def geocoding(address):
     url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode"
     headers = {
@@ -22,19 +34,11 @@ def geocoding(address):
     return None, None
 
 
-def fetch_bike_data():
-    url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1000/'
-    response = requests.get(url)
-    if response.status_code != 200:
-        raise Exception('따릉이 API 호출 실패')
-    return response.json().get('rentBikeStatus', {}).get('row', [])
-
-
 def get_nearby_stations(latitude, longitude):
     radius = 500  # 반경 500m
     searching_location = (latitude, longitude)
 
-    stations = fetch_bike_data()
+    stations = fetch_all_stations_data()
     within_radius = []
 
     for station in stations:
