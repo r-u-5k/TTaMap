@@ -12,5 +12,5 @@ def get_near_stations(request):
 
 def get_station_data(request):
     station_id = str(request.GET.get('id'))
-    station_data = fetch_station_data(station_id)
-    return JsonResponse({'station_data': station_data})
+    station_data = fetch_station_data(station_id)[0]
+    return JsonResponse(station_data, safe=False)
