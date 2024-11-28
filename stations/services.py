@@ -7,13 +7,13 @@ import params as pa
 def fetch_all_stations_data():
     url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1000/'
     response = requests.get(url)
-    return response.json().get('rentBikeStatus').get('row')
+    return response.json().get('rentBikeStatus', {}).get('row', [])
 
 
 def fetch_station_data(station_id):
     url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1/{station_id}'
     response = requests.get(url)
-    return response.json().get('rentBikeStatus').get('row')
+    return response.json().get('rentBikeStatus', {}).get('row', [])
 
 
 def geocoding(address):
