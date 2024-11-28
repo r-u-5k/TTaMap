@@ -7,7 +7,7 @@ def get_near_stations(request):
     latitude = float(request.GET.get('lat'))
     longitude = float(request.GET.get('lng'))
     nearby_stations = fetch_near_stations(latitude, longitude)
-    return JsonResponse({'stations': nearby_stations})
+    return JsonResponse({'near_stations': nearby_stations})
 
 
 def get_station_data(request):
@@ -18,3 +18,8 @@ def get_station_data(request):
     station_data = station_data_temp[0]
     # 총 주차 대수: station_data['parkingBikeTotCnt']
     return JsonResponse(station_data, safe=False)
+
+
+def get_all_stations_data(request):
+    stations = fetch_all_stations_data()
+    return JsonResponse(stations, safe=False)

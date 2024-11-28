@@ -5,14 +5,32 @@ import params as pa
 
 
 def fetch_all_stations_data():
-    url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1000/'
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # HTTP 상태 코드가 200이 아니면 예외 발생
-        return response.json().get('rentBikeStatus', {}).get('row', [])
-    except Exception as e:
-        print(f"Error fetching station data: {e}")
-        return []
+    base_url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/'
+    start = 1
+    end = 1000
+    all_data = []
+
+    while True:
+        url = f"{base_url}{start}/{end}/"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # HTTP 상태 코드 확인
+            data = response.json().get('rentBikeStatus', {}).get('row', [])
+
+            if not data:  # 더 이상 데이터가 없으면 종료
+                break
+
+            all_data.extend(data)  # 데이터를 합침
+
+            # 다음 페이지로 이동
+            start = end + 1
+            end = start + 999
+
+        except Exception as e:
+            print(f"Error fetching station data: {e}")
+            break
+
+    return all_data
 
 
 def fetch_station_data(station_id):
