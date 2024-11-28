@@ -3,6 +3,7 @@ from geopy.distance import geodesic
 
 import params as pa
 
+
 # parameter 정보
 # 1	rackTotCnt	거치대개수
 # 2	stationName	대여소이름
@@ -28,7 +29,7 @@ def fetch_all_stations_data():
             if not data:  # 데이터가 더 없으면 종료
                 break
 
-            filtered_data = [station for station in data if float(station['stationLatitude']) != 0] # 위도값이 0인 데이터 제거
+            filtered_data = [station for station in data if float(station['stationLatitude']) != 0]  # 위도값이 0인 데이터 제거
             all_data.extend(filtered_data)
 
             start = end + 1
@@ -37,7 +38,7 @@ def fetch_all_stations_data():
         except Exception as e:
             print(f"Error fetching station data: {e}")
             break
-    print(len(all_data))
+
     return all_data
 
 
@@ -86,11 +87,8 @@ def fetch_near_stations(latitude, longitude):
         if distance <= radius:
             within_radius.append({
                 'stationName': station['stationName'],
-                'latitude': station['stationLatitude'],
-                'longitude': station['stationLongitude'],
                 'distance': distance,
                 'bikesAvailable': station['parkingBikeTotCnt'],
-                'totalRacks': station['rackTotCnt']
             })
 
     return sorted(within_radius, key=lambda x: x['distance'])
