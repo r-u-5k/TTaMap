@@ -13,6 +13,8 @@ import params as pa
 # 6	stationLongitude	경도
 # 7	stationId	대여소ID
 
+
+# 모든 대여소 데이터 반환
 def fetch_all_stations_data():
     base_url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/'
     start = 1
@@ -42,6 +44,7 @@ def fetch_all_stations_data():
     return all_data
 
 
+# station_id에 해당하는 대여소 1개 데이터 반환
 def fetch_station_data(station_id):
     url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1/{station_id}'
     try:
@@ -53,6 +56,7 @@ def fetch_station_data(station_id):
         return []
 
 
+# 주소를 입력하면 위도/경도 값으로 변환
 def geocoding(address):
     url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode"
     headers = {
@@ -74,6 +78,7 @@ def geocoding(address):
         return None, None
 
 
+# 위도, 경도를 넣으면 가까운 대여소 목록 반환 (거리 순 정렬)
 def fetch_near_stations(latitude, longitude):
     radius = 500  # 반경 500m
     searching_location = (latitude, longitude)
