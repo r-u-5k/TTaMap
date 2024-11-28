@@ -56,7 +56,7 @@ def get_station_data(station_id):
         return []
 
 
-# 주소를 입력하면 위도/경도 값으로 변환
+# 주소를 입력하면 위도, 경도로 변환
 def geocoding(address):
     url = "https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode"
     headers = {

@@ -3,14 +3,14 @@ from django.http import JsonResponse
 from .services import *
 
 
-def view_near_stations(request):
+def near_stations_view(request):
     latitude = float(request.GET.get('lat'))
     longitude = float(request.GET.get('lng'))
     nearby_stations = get_near_stations(latitude, longitude)
     return JsonResponse({'near_stations': nearby_stations})
 
 
-def view_station_data(request):
+def station_data_view(request):
     station_id = str(request.GET.get('id'))
     station_data_temp = get_station_data(station_id)
     if not station_data_temp:
@@ -20,6 +20,6 @@ def view_station_data(request):
     return JsonResponse(station_data, safe=False)
 
 
-def view_all_stations_data(request):
+def all_stations_data_view(request):
     stations = get_all_stations_data()
     return JsonResponse(stations, safe=False)
