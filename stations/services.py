@@ -14,12 +14,12 @@ import params as pa
 # 7	stationId	대여소ID
 
 
-# 모든 대여소 데이터 반환
-def fetch_all_stations_data():
+# 모든 대여소 데이터 가져옴
+def get_all_stations_data():
     base_url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/'
     start = 1
     end = 1000
-    all_data = []
+    data = []
 
     while True:
         url = f"{base_url}{start}/{end}/"
@@ -32,27 +32,27 @@ def fetch_all_stations_data():
                 break
 
             filtered_data = [station for station in data if float(station['stationLatitude']) != 0]  # 위도값이 0인 데이터 제거
-            all_data.extend(filtered_data)
+            data.extend(filtered_data)
 
             start = end + 1
             end = start + 999
 
         except Exception as e:
-            print(f"Error fetching station data: {e}")
+            print(f"Error: {e}")
             break
 
-    return all_data
+    return data
 
 
-# station_id에 해당하는 대여소 1개 데이터 반환
-def fetch_station_data(station_id):
+# station_id에 해당하는 대여소 1개 데이터 가져옴
+def get_station_data(station_id):
     url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1/{station_id}'
     try:
         response = requests.get(url)
         response.raise_for_status()
         return response.json().get('rentBikeStatus', {}).get('row', [])
     except Exception as e:
-        print(f"Error fetching station data: {e}")
+        print(f"Error: {e}")
         return []
 
 
@@ -72,18 +72,16 @@ def geocoding(address):
             latitude = float(data['addresses'][0]['y'])
             longitude = float(data['addresses'][0]['x'])
             return latitude, longitude
-        else:
-            return None, None
-    else:
-        return None, None
+
+    return None, None
 
 
 # 위도, 경도를 넣으면 가까운 대여소 목록 반환 (거리 순 정렬)
-def fetch_near_stations(latitude, longitude):
+def get_near_stations(latitude, longitude):
     radius = 500  # 반경 500m
     searching_location = (latitude, longitude)
 
-    stations = fetch_all_stations_data()
+    stations = get_all_stations_data()
     within_radius = []
 
     for station in stations:
