@@ -19,7 +19,7 @@ def get_all_stations_data():
     base_url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/'
     start = 1
     end = 1000
-    data = []
+    all_data = []
 
     while True:
         url = f"{base_url}{start}/{end}/"
@@ -32,7 +32,7 @@ def get_all_stations_data():
                 break
 
             filtered_data = [station for station in data if float(station['stationLatitude']) != 0]  # 위도값이 0인 데이터 제거
-            data.extend(filtered_data)
+            all_data.extend(filtered_data)
 
             start = end + 1
             end = start + 999
@@ -41,7 +41,7 @@ def get_all_stations_data():
             print(f"Error: {e}")
             break
 
-    return data
+    return all_data
 
 
 # station_id에 해당하는 대여소 1개 데이터 가져옴
@@ -76,7 +76,7 @@ def geocoding(address):
     return None, None
 
 
-# 위도, 경도를 넣으면 가까운 대여소 목록 반환 (거리 순 정렬)
+# 위도, 경도를 입력하면 가까운 대여소 목록 반환 (거리 순 정렬)
 def get_near_stations(latitude, longitude):
     radius = 500  # 반경 500m
     searching_location = (latitude, longitude)
