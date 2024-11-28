@@ -6,14 +6,24 @@ import params as pa
 
 def fetch_all_stations_data():
     url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1000/'
-    response = requests.get(url)
-    return response.json().get('rentBikeStatus', {}).get('row', [])
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # HTTP 상태 코드가 200이 아니면 예외 발생
+        return response.json().get('rentBikeStatus', {}).get('row', [])
+    except Exception as e:
+        print(f"Error fetching station data: {e}")
+        return []
 
 
 def fetch_station_data(station_id):
     url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1/{station_id}'
-    response = requests.get(url)
-    return response.json().get('rentBikeStatus', {}).get('row', [])
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json().get('rentBikeStatus', {}).get('row', [])
+    except Exception as e:
+        print(f"Error fetching station data: {e}")
+        return []
 
 
 def geocoding(address):
@@ -31,7 +41,10 @@ def geocoding(address):
             latitude = float(data['addresses'][0]['y'])
             longitude = float(data['addresses'][0]['x'])
             return latitude, longitude
-    return None, None
+        else:
+            return None, None
+    else:
+        return None, None
 
 
 def fetch_near_stations(latitude, longitude):
