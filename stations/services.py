@@ -3,6 +3,14 @@ from geopy.distance import geodesic
 
 import params as pa
 
+# parameter 정보
+# 1	rackTotCnt	거치대개수
+# 2	stationName	대여소이름
+# 3	parkingBikeTotCnt	자전거주차총건수
+# 4	shared	거치율
+# 5	stationLatitude	위도
+# 6	stationLongitude	경도
+# 7	stationId	대여소ID
 
 def fetch_all_stations_data():
     base_url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/'
@@ -17,19 +25,19 @@ def fetch_all_stations_data():
             response.raise_for_status()  # HTTP 상태 코드 확인
             data = response.json().get('rentBikeStatus', {}).get('row', [])
 
-            if not data:  # 더 이상 데이터가 없으면 종료
+            if not data:  # 데이터가 더 없으면 종료
                 break
 
-            all_data.extend(data)  # 데이터를 합침
+            filtered_data = [station for station in data if float(station['stationLatitude']) != 0] # 위도값이 0인 데이터 제거
+            all_data.extend(filtered_data)
 
-            # 다음 페이지로 이동
             start = end + 1
             end = start + 999
 
         except Exception as e:
             print(f"Error fetching station data: {e}")
             break
-
+    print(len(all_data))
     return all_data
 
 
