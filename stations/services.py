@@ -14,7 +14,7 @@ import params as pa
 # 7	stationId	대여소ID
 
 
-# 모든 대여소 데이터 가져옴
+# 전체 대여소 데이터 가져옴
 def get_all_stations_data():
     base_url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/'
     start = 1
@@ -31,7 +31,7 @@ def get_all_stations_data():
             if not data:  # 데이터가 더 없으면 종료
                 break
 
-            filtered_data = [station for station in data if float(station['stationLatitude']) != 0]  # 위도값이 0인 데이터 제거
+            filtered_data = [station for station in data if float(station['stationLatitude']) != 0]  # 위도값이 0인 데이터는 제거
             all_data.extend(filtered_data)
 
             start = end + 1
@@ -44,7 +44,7 @@ def get_all_stations_data():
     return all_data
 
 
-# station_id에 해당하는 대여소 1개 데이터 가져옴
+# station id에 해당하는 대여소 1개 데이터 가져옴
 def get_station_data(station_id):
     url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/1/1/{station_id}'
     try:
