@@ -91,6 +91,8 @@ def get_near_stations(latitude, longitude):
             within_radius.append({
                 'stationName': station['stationName'],
                 'distance': distance,
+                'latitude': station['stationLatitude'],
+                'longitude': station['stationLongitude'],
                 'bikesAvailable': station['parkingBikeTotCnt'],
             })
 

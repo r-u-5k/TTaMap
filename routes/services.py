@@ -1,11 +1,12 @@
 import requests
 import urllib.parse
 import params as pa
+from stations.services import *
 
-def get_public_transport_route(departure_lat, departure_lon, arrival_lat, arrival_lon):
+def get_pt_route(start_lat, start_lng, end_lat, end_lon):
     api_key = pa.ODSAY_API_KEY
     encoded_api_key = urllib.parse.quote(api_key, encoding='utf-8')
-    url_info = f"https://api.odsay.com/v1/api/searchPubTransPathT?SY={departure_lat}&SX={departure_lon}&EY={arrival_lat}&EX={arrival_lon}&apiKey={encoded_api_key}"
+    url_info = f"https://api.odsay.com/v1/api/searchPubTransPathT?SY={start_lat}&SX={start_lng}&EY={end_lat}&EX={end_lon}&apiKey={encoded_api_key}"
 
     response = requests.get(url_info, headers={"Content-type": "application/json"})
 
@@ -13,3 +14,37 @@ def get_public_transport_route(departure_lat, departure_lon, arrival_lat, arriva
         return response.json()
     else:
         raise Exception(f"API request failed with status {response.status_code}")
+
+
+# 출발지 → 출발지 주변 따릉이 대여소(A) (도보)
+# 출발지 주변 따릉이 대여소(A) → 대중교통 승차지 주변 따릉이 대여소(B) (따릉이)
+# 대중교통 승차지 주변 따릉이 대여소(B) → 대중교통 하차지 주변 따릉이 대여소(C) (대중교통 API)
+# 대중교통 하차지 주변 따릉이 대여소(C) → 도착지 주변 따릉이 대여소(D) (따릉이)
+# 도착지 주변 따릉이 대여소(D) → 도착지 (도보)
+
+def get_full_route(start_lat, start_lng, end_lat, end_lng):
+    data = get_pt_route(start_lat, start_lng, end_lat, end_lng)
+
+    if data['result']['path'][0]['subPath'][1]['trafficType'] in (1, 2):
+        start_pt_station = data['result']['path'][0]['subPath'][1]
+        start_pt_station_lat = start_pt_station['startY']
+        start_pt_station_lng = start_pt_station['startX']
+
+    if data['result']['path'][0]['subPath'][-2]['trafficType'] in (1, 2):
+        end_pt_station = data['result']['path'][0]['subPath'][-2]
+        end_pt_station_lat = end_pt_station['endY']
+        end_pt_station_lng = end_pt_station['endX']
+
+        bike_station_A = get_near_stations(start_lat, start_lng)[0]
+        bike_station_A_lat = bike_station_A['latitude']
+        bike_station_A_lng = bike_station_A['longitude']
+        bike_station_B = get_near_stations(start_pt_station_lat, start_pt_station_lng)[0]
+        bike_station_B_lat = bike_station_B['latitude']
+        bike_station_B_lng = bike_station_B['longitude']
+
+        bike_station_C = get_near_stations(end_pt_station_lat, end_pt_station_lng)[0]
+        bike_station_C_lat = bike_station_C['latitude']
+        bike_station_C_lng = bike_station_C['longitude']
+        bike_station_D = get_near_stations(end_lat, end_lng)[0]
+        bike_station_D_lat = bike_station_D['latitude']
+        bike_station_D_lng = bike_station_D['longitude']
