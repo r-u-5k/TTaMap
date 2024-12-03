@@ -1,15 +1,15 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .services import get_pt_route
+from .services import get_odsay_route
 
 # Create your views here.
-def public_transport_route_view(request):
+def pt_route_view(request):
     start_lat = request.GET.get('slat')
     start_lng = request.GET.get('slng')
     end_lat = request.GET.get('elat')
     end_lng = request.GET.get('elng')
     try:
-        data = get_pt_route(start_lat, start_lng, end_lat, end_lng)
+        data = get_odsay_route(start_lat, start_lng, end_lat, end_lng)
         if data['result']['path'][0]['subPath'][0]['trafficType'] == 3:
             print(f'출발지에서 대중교통 탑승 전까지 도보 이동 거리: {data['result']['path'][0]['subPath'][0]['distance']}m')
             print(f'출발지에서 대중교통 탑승 전까지 도보 이동 시간: {data['result']['path'][0]['subPath'][0]['sectionTime']}분')
