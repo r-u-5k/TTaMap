@@ -84,3 +84,6 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
     route_B2C = get_odsay_route(bike_station_B_lat, bike_station_B_lng, bike_station_C_lat, bike_station_C_lng)
     route_C2D = get_bike_route(bike_station_C_lng, bike_station_C_lng, bike_station_D_lat, bike_station_D_lng)
     route_D2end = get_walk_route(bike_station_D_lat, bike_station_D_lng, end_lat, end_lng)
+
+    full_route = [route_start2A] + [route_A2B] + [route_B2C] + [route_C2D] + [route_D2end]
+    return full_route
