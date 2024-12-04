@@ -29,7 +29,9 @@
       function searchPubTransPathAJAX() {
         var xhr = new XMLHttpRequest();
         //ODsay apiKey 입력
-        var url = 'https://api.odsay.com/v1/api/searchPubTransPathT?SX=' + sx + '&SY=' + sy + '&EX=' + ex + '&EY=' + ey + '&apiKey=rbJxYA7%2BAxRwIfD4HufMhQ';
+        var baseUrl = 'https://api.odsay.com/v1/api/searchPubTransPathT?SX=' + sx + '&SY=' + sy + '&EX=' + ex + '&EY=' + ey + '&apiKey=';
+        var apiKey = 'rbJxYA7+AxRwIfD4HufMhQ'
+        var url = baseUrl + encodeURIComponent(apiKey)
         xhr.open('GET', url, true);
         xhr.send();
         xhr.onreadystatechange = function () {
@@ -47,8 +49,9 @@
       function callMapObjApiAJAX(mapObj) {
         var xhr = new XMLHttpRequest();
         //ODsay apiKey 입력
-        var url = 'https://api.odsay.com/v1/api/searchPubTransPathT?SX=' + sx + '&SY=' + sy + '&EX=' + ex + '&EY=' + ey + '&apiKey=rbJxYA7%2BAxRwIfD4HufMhQ';
-        xhr.open('GET', url, true);
+        var baseUrl = 'https://api.odsay.com/v1/api/searchPubTransPathT?SX=' + sx + '&SY=' + sy + '&EX=' + ex + '&EY=' + ey + '&apiKey=';
+        var apiKey = 'rbJxYA7+AxRwIfD4HufMhQ'
+        var url = baseUrl + encodeURIComponent(apiKey)
         xhr.send();
         xhr.onreadystatechange = function () {
           if (xhr.readyState == 4 && xhr.status == 200) {
