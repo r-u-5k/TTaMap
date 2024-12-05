@@ -35,8 +35,10 @@ def get_walk_route(start_lat, start_lng, end_lat, end_lng):
         "endY": end_lat,
         "endX": end_lng,
         "speed": 4,
-        "startName": "%EC%B6%9C%EB%B0%9C",
-        "endName": "%EB%8F%84%EC%B0%A9"
+        "startName": "a",
+        "endName": "b",
+        # "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng), encoding='utf-8'),
+        # "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng), encoding='utf-8'),
     }
 
     response = requests.post(url, headers=headers, json=data)
@@ -44,7 +46,7 @@ def get_walk_route(start_lat, start_lng, end_lat, end_lng):
     if response.status_code == 200:
         return response.json()
     else:
-        raise Exception(f"TMAP API request failed with status {response.status_code}")
+        raise Exception(f"TMAP Walk API request failed with status {response.status_code}")
 
 
 # 자전거 이동 경로
@@ -62,8 +64,10 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
         "endY": end_lat,
         "endX": end_lng,
         "speed": 20,
-        "startName": "%EC%B6%9C%EB%B0%9C",
-        "endName": "%EB%8F%84%EC%B0%A9",
+        "startName": "a",
+        "endName": "b",
+        # "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng), encoding='utf-8'),
+        # "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng), encoding='utf-8'),
     }
 
     response = requests.post(url, headers=headers, json=data)
@@ -71,7 +75,7 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
     if response.status_code == 200:
         return response.json()
     else:
-        raise Exception(f"TMAP API request failed with status {response.status_code}")
+        raise Exception(f"TMAP Bike API request failed with status {response.status_code}")
 
 
 # 출발지 → 출발지 주변 따릉이 대여소(A) (도보)
@@ -111,17 +115,8 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
     route_start2A = get_walk_route(start_lat, start_lng, bike_station_A_lat, bike_station_A_lng)
     route_A2B = get_bike_route(bike_station_A_lat, bike_station_A_lng, bike_station_B_lat, bike_station_B_lng)
     route_B2C = get_odsay_route(bike_station_B_lat, bike_station_B_lng, bike_station_C_lat, bike_station_C_lng)
-    route_C2D = get_bike_route(bike_station_C_lng, bike_station_C_lng, bike_station_D_lat, bike_station_D_lng)
+    route_C2D = get_bike_route(bike_station_C_lat, bike_station_C_lng, bike_station_D_lat, bike_station_D_lng)
     route_D2end = get_walk_route(bike_station_D_lat, bike_station_D_lng, end_lat, end_lng)
 
     full_route = [route_start2A, route_A2B, route_B2C, route_C2D, route_D2end]
     return full_route
-
-
-# 도보 이동 경로 예제
-route = get_walk_route(37.556770374096615, 126.92365493654832, 37.55279861528311, 126.92432158129688)
-print(route)
-
-# 자전거 이동 경로 예제
-bike_route = get_bike_route(37.556770374096615, 126.92365493654832, 37.55279861528311, 126.92432158129688)
-print(bike_route)

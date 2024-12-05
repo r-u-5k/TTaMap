@@ -130,5 +130,7 @@ def get_near_stations(latitude, longitude):
                 'longitude': station['stationLongitude'],
                 'bikesAvailable': station['parkingBikeTotCnt'],
             })
-
+    if not within_radius:
+        print(f"해당 위치 근처에 따릉이 대여소가 없습니다: ({latitude}, {longitude})")
+        raise ValueError("따릉이 대여소를 찾을 수 없습니다.")
     return sorted(within_radius, key=lambda x: x['distance'])
