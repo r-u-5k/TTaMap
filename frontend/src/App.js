@@ -1,10 +1,9 @@
-/* 707043564a6d696e37304273454c61 인증키 */
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import bikeIconImg from "./assets/bike.jpg";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import L from 'leaflet';
+import bikeIconImg from './assets/bike.jpg';
+import { Container as MapDiv, Marker, InfoWindow, NavermapsProvider, NaverMap, useNavermaps } from 'react-naver-maps';
+
 
 function App() {
   const [stations, setStations] = useState([]);
@@ -20,8 +19,8 @@ function App() {
 
   // API 호출 함수
   const fetchBikeStations = async () => {
-    const API_KEY = "707043564a6d696e37304273454c61"; // 발급받은 API 키 입력
-    const baseURL = `http://openapi.seoul.go.kr:8088/707043564a6d696e37304273454c61/json/bikeList`;
+    const API_KEY = '707043564a6d696e37304273454c61'; // 발급받은 API 키 입력
+    const baseURL = `http://openapi.seoul.go.kr:8088/${API_KEY}/json/bikeList`;
 
     try {
       // 1차 호출 (1~1000)
@@ -45,7 +44,7 @@ function App() {
       setStations(mergedData);
       setLoading(false);
     } catch (error) {
-      console.error("API 호출 중 오류 발생:", error);
+      console.error('API 호출 중 오류 발생:', error);
       setLoading(false);
     }
   };
@@ -55,71 +54,34 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <div className="black-nav bg-gray-800 p-4">
-        <h4 style={{ color: "white", fontSize: "16px" }}>따맵</h4>
+    <div className='App'>
+      <div className='black-nav bg-gray-800 p-4'>
+        <h4 style={{ color: 'white', fontSize: '16px' }}>따맵</h4>
       </div>
-      <div className="bg-blue-500 text-white p-4 rounded my-4">
-        {loading ? "대여소 정보를 불러오는 중..." : "자전거 대여소를 검색하세요!"}
+      <div className='bg-blue-500 text-white p-4 rounded my-4'>
+        {loading ? '대여소 정보를 불러오는 중...' : '자전거 대여소를 검색하세요!'}
       </div>
-      <div style={{ height: "500px", marginBottom: "20px" }}>
-        <MapContainer
-          center={[37.5665, 126.9780]} // 초기 지도 중심
-          zoom={13}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; OpenStreetMap contributors"
-          />
-          {stations.map((station) => (
-            <Marker
-              key={station.id}
-              position={[station.lat, station.lng]}
-              icon={bikeIcon}
+      <div style={{ height: '500px', marginBottom: '20px' }}>
+        <NavermapsProvider ncpClientId='yz53tx4y0m'>
+          <MapDiv style={{ width: '100%', height: '600px' }}>
+            <NaverMap
+              style={{ width: '100%', height: '100%' }}
+              defaultCenter={{ lat: 37.5665, lng: 126.978 }}
+              defaultZoom={13}
             >
-              <Popup>
-                {station.name} <br /> Available Bikes: {station.availableBikes}
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+              {stations.map((station) => (
+                <Marker
+                  key={station.id}
+                  position={{ lat: station.lat, lng: station.lng }}
+                  onClick={() => alert(`${station.name}\n사용 가능 자전거: ${station.availableBikes}`)}
+                />
+              ))}
+            </NaverMap>
+          </MapDiv>
+        </NavermapsProvider>
       </div>
     </div>
   );
 }
 
 export default App;
-
-
-
-
-/*import logo from './logo.svg';
-import './App.css';
-import Button from '@mui/material/Button';
-
-
-function App() {
-
-  let post = '따맵 경로'; 
-  
-
-  return (
-    <div className="App">
-      <div className="black-nav">
-        <h4 style={{color : 'red', fontSize : '16px'}}>따맵</h4>
-      </div>
-      <div className="bg-blue-500 text-white p-4 rounded">
-      자전거 대여소를 검색하세요!
-      </div>
-      <Button variant="contained" color="primary">
-      경로 계산
-      </Button>
-
-      <h4>{post}</h4>
-    </div>
-  );
-}
-
-export default App;
-*/
