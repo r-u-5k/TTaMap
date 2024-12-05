@@ -1,9 +1,12 @@
 import urllib.parse
 
-from stations.services import *
+import requests
+
+import params as pa
+from stations.services import get_near_stations, reverse_geocoding
 
 
-# Odsay API 길찾기 경로
+# Odsay 경로
 def get_odsay_route(start_lat, start_lng, end_lat, end_lng):
     api_key = pa.ODSAY_API_KEY
     encoded_api_key = urllib.parse.quote(api_key, encoding='utf-8')
@@ -14,35 +17,61 @@ def get_odsay_route(start_lat, start_lng, end_lat, end_lng):
     if response.status_code == 200:
         return response.json()
     else:
-        raise Exception(f"API request failed with status {response.status_code}")
+        raise Exception(f"Odsay API request failed with status {response.status_code}")
 
 
 # 도보 이동 경로
 def get_walk_route(start_lat, start_lng, end_lat, end_lng):
-    api_key = pa.ODSAY_API_KEY
-    encoded_api_key = urllib.parse.quote(api_key, encoding='utf-8')
-    url_info = f"https://api.odsay.com/v1/api/searchPubTransPathT?SY={start_lat}&SX={start_lng}&EY={end_lat}&EX={end_lng}&apiKey={encoded_api_key}"
+    api_key = pa.TMAP_API_KEY
+    url = "https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1"
+    headers = {
+        "Accept": "application/json",
+        "appKey": api_key,
+        "Content-Type": "application/json"
+    }
+    data = {
+        "startY": start_lat,
+        "startX": start_lng,
+        "endY": end_lat,
+        "endX": end_lng,
+        "speed": 4,
+        "startName": "%EC%B6%9C%EB%B0%9C",
+        "endName": "%EB%8F%84%EC%B0%A9"
+    }
 
-    response = requests.get(url_info, headers={"Content-type": "application/json"})
+    response = requests.post(url, headers=headers, json=data)
 
     if response.status_code == 200:
         return response.json()
     else:
-        raise Exception(f"API request failed with status {response.status_code}")
+        raise Exception(f"TMAP API request failed with status {response.status_code}")
 
 
 # 자전거 이동 경로
 def get_bike_route(start_lat, start_lng, end_lat, end_lng):
-    api_key = pa.ODSAY_API_KEY
-    encoded_api_key = urllib.parse.quote(api_key, encoding='utf-8')
-    url_info = f"https://api.odsay.com/v1/api/searchPubTransPathT?SY={start_lat}&SX={start_lng}&EY={end_lat}&EX={end_lng}&apiKey={encoded_api_key}"
+    api_key = pa.TMAP_API_KEY
+    url = "https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1"
+    headers = {
+        "Accept": "application/json",
+        "appKey": api_key,
+        "Content-Type": "application/json"
+    }
+    data = {
+        "startY": start_lat,
+        "startX": start_lng,
+        "endY": end_lat,
+        "endX": end_lng,
+        "speed": 20,
+        "startName": "%EC%B6%9C%EB%B0%9C",
+        "endName": "%EB%8F%84%EC%B0%A9",
+    }
 
-    response = requests.get(url_info, headers={"Content-type": "application/json"})
+    response = requests.post(url, headers=headers, json=data)
 
     if response.status_code == 200:
         return response.json()
     else:
-        raise Exception(f"API request failed with status {response.status_code}")
+        raise Exception(f"TMAP API request failed with status {response.status_code}")
 
 
 # 출발지 → 출발지 주변 따릉이 대여소(A) (도보)
@@ -85,5 +114,14 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
     route_C2D = get_bike_route(bike_station_C_lng, bike_station_C_lng, bike_station_D_lat, bike_station_D_lng)
     route_D2end = get_walk_route(bike_station_D_lat, bike_station_D_lng, end_lat, end_lng)
 
-    full_route = [route_start2A] + [route_A2B] + [route_B2C] + [route_C2D] + [route_D2end]
+    full_route = [route_start2A, route_A2B, route_B2C, route_C2D, route_D2end]
     return full_route
+
+
+# 도보 이동 경로 예제
+route = get_walk_route(37.556770374096615, 126.92365493654832, 37.55279861528311, 126.92432158129688)
+print(route)
+
+# 자전거 이동 경로 예제
+bike_route = get_bike_route(37.556770374096615, 126.92365493654832, 37.55279861528311, 126.92432158129688)
+print(bike_route)

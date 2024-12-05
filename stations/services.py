@@ -18,7 +18,7 @@ import params as pa
 def get_all_stations_data():
     base_url = f'http://openapi.seoul.go.kr:8088/{pa.SEOUL_API_KEY}/json/bikeList/'
     start = 1
-    end = 1000
+    end = 500
     all_data = []
 
     while True:
@@ -35,7 +35,7 @@ def get_all_stations_data():
             all_data.extend(filtered_data)
 
             start = end + 1
-            end = start + 999
+            end = start + 499
 
         except Exception as e:
             print(f"Error: {e}")
@@ -76,9 +76,44 @@ def geocoding(address):
     return None, None
 
 
+# 위도, 경도를 입력하면 주소로 변환
+def reverse_geocoding(latitude, longitude):
+    url = "https://naveropenapi.apigw.ntruss.com/map-reversegeocode/v2/gc"
+    headers = {
+        "X-NCP-APIGW-API-KEY-ID": pa.NAVER_CLIENT_ID,
+        "X-NCP-APIGW-API-KEY": pa.NAVER_CLIENT_SECRET
+    }
+    params = {
+        "coords": f"{longitude},{latitude}",
+        "orders": "roadaddr",
+        "output": "json"
+    }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("results"):
+            address_info = data["results"][0]
+            road_address = (address_info.get("region", {}).get("area1", {}).get("name", "") + " " +
+                            address_info.get("region", {}).get("area2", {}).get("name", "") + " " +
+                            address_info.get("region", {}).get("area3", {}).get("name", "") + " " +
+                            address_info.get("region", {}).get("area4", {}).get("name", "") + " " +
+                            address_info.get("land", {}).get("name", "") + " " +
+                            address_info.get("land", {}).get("number1", "") + " " +
+                            address_info.get("land", {}).get("number2", ""))
+            return road_address.strip()
+        else:
+            return ""
+
+    except requests.exceptions.RequestException as e:
+        print(f"API 요청 중 에러 발생: {e}")
+        return ""
+
+
 # 위도, 경도를 입력하면 가까운 대여소 목록 반환 (거리 순 정렬)
 def get_near_stations(latitude, longitude):
-    radius = 500  # 반경 500m
+    radius = 1000  # 반경 1km
     searching_location = (latitude, longitude)
 
     stations = get_all_stations_data()
