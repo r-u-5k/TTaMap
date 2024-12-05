@@ -63,7 +63,7 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
         "startX": start_lng,
         "endY": end_lat,
         "endX": end_lng,
-        "speed": 20,
+        "speed": 15,
         "startName": "a",
         "endName": "b",
         # "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng), encoding='utf-8'),
