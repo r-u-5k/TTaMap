@@ -10,28 +10,35 @@
   </head>
   <body>
     <div id="map" style="width: 100%; height: 400px"></div>
-    <!-- Naver Developers에서 발급받은 네이버지도 Application Key 입력  -->
     <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=yz53tx4y0m"></script>
 
     <script>
       var mapOptions = {
-        center: new naver.maps.LatLng(37.3595704, 127.105399),
-        zoom: 10,
+        center: new naver.maps.LatLng(37.541699, 127.078852),
+        zoom: 16,
       };
 
       var map = new naver.maps.Map('map', mapOptions);
 
-      var sx = 126.93737555322481;
-      var sy = 37.55525165729346;
-      var ex = 126.88265238619182;
-      var ey = 37.481440035175375;
+      var sx = 127.078852;
+      var sy = 37.541699;
+      var ex = 127.022812;
+      var ey = 37.521199;
 
       function searchPubTransPathAJAX() {
         var xhr = new XMLHttpRequest();
-        //ODsay apiKey 입력
-        var baseUrl = 'https://api.odsay.com/v1/api/searchPubTransPathT?SX=' + sx + '&SY=' + sy + '&EX=' + ex + '&EY=' + ey + '&apiKey=';
-        var apiKey = 'rbJxYA7+AxRwIfD4HufMhQ'
-        var url = baseUrl + encodeURIComponent(apiKey)
+        var baseUrl =
+          'https://api.odsay.com/v1/api/searchPubTransPathT?SX=' +
+          sx +
+          '&SY=' +
+          sy +
+          '&EX=' +
+          ex +
+          '&EY=' +
+          ey +
+          '&apiKey=';
+        var apiKey = 'rbJxYA7+AxRwIfD4HufMhQ';
+        var url = baseUrl + encodeURIComponent(apiKey);
         xhr.open('GET', url, true);
         xhr.send();
         xhr.onreadystatechange = function () {
@@ -48,10 +55,19 @@
 
       function callMapObjApiAJAX(mapObj) {
         var xhr = new XMLHttpRequest();
-        //ODsay apiKey 입력
-        var baseUrl = 'https://api.odsay.com/v1/api/searchPubTransPathT?SX=' + sx + '&SY=' + sy + '&EX=' + ex + '&EY=' + ey + '&apiKey=';
-        var apiKey = 'rbJxYA7+AxRwIfD4HufMhQ'
-        var url = baseUrl + encodeURIComponent(apiKey)
+        var baseUrl =
+          'https://api.odsay.com/v1/api/searchPubTransPathT?SX=' +
+          sx +
+          '&SY=' +
+          sy +
+          '&EX=' +
+          ex +
+          '&EY=' +
+          ey +
+          '&apiKey=';
+        var apiKey = 'rbJxYA7+AxRwIfD4HufMhQ';
+        var url = baseUrl + encodeURIComponent(apiKey);
+        xhr.open('GET', url, true);
         xhr.send();
         xhr.onreadystatechange = function () {
           if (xhr.readyState == 4 && xhr.status == 200) {
@@ -81,45 +97,105 @@
 
       // 노선 그래픽 데이터를 이용하여 지도위 폴리라인 그려주는 함수
       function drawNaverPolyLine(data) {
-        var lineArray;
+        if (!data.result || !data.result.path) {
+          console.error('Invalid data: path is missing');
+          return;
+        }
 
-        for (var i = 0; i < data.result.lane.length; i++) {
-          for (var j = 0; j < data.result.lane[i].section.length; j++) {
-            lineArray = null;
-            lineArray = new Array();
-            for (var k = 0; k < data.result.lane[i].section[j].graphPos.length; k++) {
-              lineArray.push(
-                new naver.maps.LatLng(
-                  data.result.lane[i].section[j].graphPos[k].y,
-                  data.result.lane[i].section[j].graphPos[k].x
-                )
-              );
-            }
+        for (var i = 0; i < 3; i++) {
+          var subPaths = data.result.path[i].subPath;
+          if (!subPaths) {
+            console.warn(`Path ${i}: subPath is missing`);
+            continue;
+          }
 
-            //지하철 결과의 경우 노선에 따른 라인 색상 지정하는 부분 (1, 2호선의 경우만 예로 들음)
-            if (data.result.lane[i].type == 1) {
-              var polyline = new naver.maps.Polyline({
+          for (var j = 0; j < subPaths.length; j++) {
+            var subPath = subPaths[j];
+
+            if (subPath.trafficType === 1 || subPath.trafficType === 2) {
+              var stations = subPath.passStopList.stations;
+              var lineArray = [];
+
+              for (var k = 0; k < stations.length; k++) {
+                lineArray.push(new naver.maps.LatLng(parseFloat(stations[k].y), parseFloat(stations[k].x)));
+              }
+
+              // 선 색상 설정
+              var strokeColor = '#000000'; // 기본: 검은색
+              if (subPath.trafficType === 1 && subPath.lane && subPath.lane.length > 0) {
+                // 지하철 구간 색상 설정
+                var subwayCode = subPath.lane[0].subwayCode; // 첫 번째 노선의 코드 확인
+                if (subwayCode === 1) {
+                  strokeColor = '#003499'; // 1호선: 파란색
+                } else if (subwayCode === 2) {
+                  strokeColor = '#37b42d'; // 2호선: 초록색
+                }
+              } else if (subPath.trafficType === 2) {
+                // 버스 구간 색상 설정
+                strokeColor = '#ff6600'; // 버스: 주황색
+              }
+
+              // 폴리라인 그리기
+              new naver.maps.Polyline({
                 map: map,
-                path: lineArray,
-                strokeWeight: 3,
-                strokeColor: '#003499',
+                path: lineArray, // 좌표 배열
+                strokeWeight: 3, // 선의 두께
+                strokeColor: strokeColor, // 동적 색상
               });
-            } else if (data.result.lane[i].type == 2) {
-              var polyline = new naver.maps.Polyline({
-                map: map,
-                path: lineArray,
-                strokeWeight: 3,
-                strokeColor: '#37b42d',
-              });
-            } else {
-              var polyline = new naver.maps.Polyline({
-                map: map,
-                path: lineArray,
-                strokeWeight: 3,
-              });
+            } else if (subPath.trafficType === 3) {
+              var startLatLng = new naver.maps.LatLng(parseFloat(subPath.startY), parseFloat(subPath.startX));
+              var endLatLng = new naver.maps.LatLng(parseFloat(subPath.endY), parseFloat(subPath.endX));
+              drawDashedLine(startLatLng, endLatLng, '#888888');
             }
           }
         }
+      }
+
+      // 점선 구현 함수
+      function drawDashedLine(start, end, color) {
+        var lineArray = [start, end];
+        var totalDistance = haversineDistance(start, end); // 두 좌표 사이의 거리 계산
+        var dashLength = 10; // 점선 길이 (미터)
+        var gapLength = 5; // 점선 간격 (미터)
+        var numDashes = Math.floor(totalDistance / (dashLength + gapLength));
+
+        for (var i = 0; i < numDashes; i++) {
+          var startRatio = (i * (dashLength + gapLength)) / totalDistance;
+          var endRatio = (i * (dashLength + gapLength) + dashLength) / totalDistance;
+
+          var dashStart = interpolateLatLng(start, end, startRatio);
+          var dashEnd = interpolateLatLng(start, end, endRatio);
+
+          new naver.maps.Polyline({
+            map: map,
+            path: [dashStart, dashEnd],
+            strokeWeight: 2,
+            strokeColor: color,
+          });
+        }
+      }
+
+      // 두 좌표 사이의 거리를 계산 (Haversine 공식 사용)
+      function haversineDistance(start, end) {
+        const R = 6371e3; // 지구 반지름 (미터)
+        const lat1 = start.lat() * (Math.PI / 180); // 위도 1 (라디안 변환)
+        const lat2 = end.lat() * (Math.PI / 180); // 위도 2 (라디안 변환)
+        const deltaLat = (end.lat() - start.lat()) * (Math.PI / 180);
+        const deltaLng = (end.lng() - start.lng()) * (Math.PI / 180);
+
+        const a =
+          Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+          Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; // 두 좌표 사이의 거리 (미터 단위)
+      }
+
+      // 두 좌표 사이의 비율에 따른 위치 계산 함수
+      function interpolateLatLng(start, end, ratio) {
+        var lat = start.lat() + (end.lat() - start.lat()) * ratio;
+        var lng = start.lng() + (end.lng() - start.lng()) * ratio;
+        return new naver.maps.LatLng(lat, lng);
       }
     </script>
   </body>
