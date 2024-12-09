@@ -92,28 +92,29 @@ def reverse_geocoding(latitude, longitude):
         response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         data = response.json()
-
         if data.get("results"):
             address_info = data["results"][0]
-            road_address = (address_info.get("region", {}).get("area1", {}).get("name", "") + " " +
-                            address_info.get("region", {}).get("area2", {}).get("name", "") + " " +
-                            address_info.get("region", {}).get("area3", {}).get("name", "") + " " +
-                            address_info.get("region", {}).get("area4", {}).get("name", "") + " " +
-                            address_info.get("land", {}).get("name", "") + " " +
-                            address_info.get("land", {}).get("number1", "") + " " +
-                            address_info.get("land", {}).get("number2", ""))
+            region = address_info.get("region", {})
+            land = address_info.get("land", {})
+
+            road_address = (region.get("area1", {}).get("name", "") + " " +
+                            region.get("area2", {}).get("name", "") + " " +
+                            land.get("name", "") + " " +
+                            land.get("number1", ""))
+            if land.get("number2"):
+                road_address += "-" + land.get("number2")
             return road_address.strip()
         else:
-            return ""
+            return "주소"
 
     except Exception as e:
         print(f"API 요청 중 에러 발생: {e}")
+        print(f"응답 내용: {response.text}")
         return ""
 
 
-# 위도, 경도를 입력하면 가까운 대여소 목록 반환 (거리 순 정렬)
-def get_near_stations(latitude, longitude):
-    radius = 500  # 반경 500m
+# 위도, 경도, 반경을 입력하면 해당 반경 내의 대여소 목록 반환 (거리 순 정렬)
+def get_near_stations(latitude, longitude, radius):
     searching_location = (latitude, longitude)
 
     stations = get_all_stations_data()
@@ -130,8 +131,9 @@ def get_near_stations(latitude, longitude):
                 'longitude': station['stationLongitude'],
                 'bikesAvailable': station['parkingBikeTotCnt'],
             })
+            print(f"대여소: {station['stationName']}, 거리: {distance}m")
     if not within_radius:
         print(f"해당 위치 근처에 따릉이 대여소가 없습니다: ({latitude}, {longitude})")
-        raise ValueError("따릉이 대여소를 찾을 수 없습니다.")
+        return []
 
     return sorted(within_radius, key=lambda x: x['distance'])

@@ -6,7 +6,7 @@ from .services import *
 def near_stations_view(request):
     latitude = float(request.GET.get('lat'))
     longitude = float(request.GET.get('lng'))
-    near_stations = get_near_stations(latitude, longitude)
+    near_stations = get_near_stations(latitude, longitude, 500)
     return JsonResponse(near_stations, safe=False)
 
 
