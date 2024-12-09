@@ -1,6 +1,8 @@
-from django.shortcuts import render
 from django.http import JsonResponse
-from .services import get_odsay_route, get_full_route, get_bike_route, get_walk_route
+from django.shortcuts import render
+
+from .services import get_odsay_route, get_full_route, get_bike_route, get_walk_route, get_simple_route
+
 
 # Create your views here.
 def pt_route_view(request):
@@ -21,6 +23,7 @@ def pt_route_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+
 def walk_route_view(request):
     start_lat = request.GET.get('slat')
     start_lng = request.GET.get('slng')
@@ -31,6 +34,7 @@ def walk_route_view(request):
         return JsonResponse(data, safe=False)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
 
 def bike_route_view(request):
     start_lat = request.GET.get('slat')
@@ -43,6 +47,7 @@ def bike_route_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+
 def full_route_view(request):
     start_lat = request.GET.get('slat')
     start_lng = request.GET.get('slng')
@@ -53,6 +58,19 @@ def full_route_view(request):
         return JsonResponse(data, safe=False)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+def simple_route_view(request):
+    start_lat = request.GET.get('slat')
+    start_lng = request.GET.get('slng')
+    end_lat = request.GET.get('elat')
+    end_lng = request.GET.get('elng')
+    try:
+        data = get_full_route(start_lat, start_lng, end_lat, end_lng)
+        return get_simple_route(data)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 
 def route_html_view(request):
     return render(request, "routes/route.html")

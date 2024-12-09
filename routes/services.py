@@ -15,7 +15,9 @@ def get_odsay_route(start_lat, start_lng, end_lat, end_lng):
     response = requests.get(url_info, headers={"Content-type": "application/json"})
 
     if response.status_code == 200:
-        return response.json()
+        result = response.json()
+        result["type"] = "transit"
+        return result
     else:
         raise Exception(f"Odsay API request failed with status {response.status_code}")
 
@@ -40,7 +42,9 @@ def get_walk_route(start_lat, start_lng, end_lat, end_lng):
     response = requests.post(url, headers=headers, json=data)
 
     if response.status_code == 200:
-        return response.json()
+        result = response.json()
+        result["type"] = "walk"
+        return result
     else:
         raise Exception(f"TMAP Walk API request failed with status {response.status_code}")
 
@@ -74,6 +78,8 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
 
             if "time" in properties:
                 properties["time"] = properties["time"] // 4  # 구간별 이동 시간 업데이트
+
+        result["type"] = "bike"
 
         return result
     else:
@@ -146,3 +152,56 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
         full_route.append(route_C2end)
 
     return full_route
+
+
+def get_simple_route(data_list):
+    summary = []
+    for data in data_list:
+        data_type = data.get("type", "")
+
+        # 도보/자전거 데이터 처리
+        if data_type in ["walk", "bike"]:
+            for feature in data.get("features", []):
+                properties = feature.get("properties", {})
+                geometry = feature.get("geometry", {})
+                if properties and geometry:
+                    summary.append({
+                        "type": data_type,
+                        "distance": properties.get("totalDistance", 0),
+                        "time": properties.get("totalTime", 0),
+                        "description": properties.get("description", ""),
+                        "coordinates": geometry.get("coordinates", [])
+                    })
+
+        # 대중교통 데이터 처리
+        elif data_type == "transit":
+            for path in data.get("result", {}).get("path", []):
+                for sub_path in path.get("subPath", []):
+                    if sub_path.get("trafficType") == 1:  # 지하철
+                        summary.append({
+                            "type": "subway",
+                            "line": sub_path.get("lane", [{}])[0].get("name", ""),
+                            "start": sub_path.get("startName", ""),
+                            "end": sub_path.get("endName", ""),
+                            "distance": sub_path.get("distance", 0),
+                            "time": sub_path.get("sectionTime", 0),
+                            "stationCount": sub_path.get("stationCount", 0)
+                        })
+                    elif sub_path.get("trafficType") == 2:  # 버스
+                        summary.append({
+                            "type": "bus",
+                            "line": sub_path.get("lane", [{}])[0].get("busNo", ""),
+                            "start": sub_path.get("startName", ""),
+                            "end": sub_path.get("endName", ""),
+                            "distance": sub_path.get("distance", 0),
+                            "time": sub_path.get("sectionTime", 0),
+                            "stationCount": sub_path.get("stationCount", 0)
+                        })
+                    elif sub_path.get("trafficType") == 3:  # 도보
+                        summary.append({
+                            "type": "walk",
+                            "distance": sub_path.get("distance", 0),
+                            "time": sub_path.get("sectionTime", 0)
+                        })
+
+    return summary
