@@ -35,10 +35,8 @@ def get_walk_route(start_lat, start_lng, end_lat, end_lng):
         "endY": end_lat,
         "endX": end_lng,
         "speed": 4,
-        "startName": "a",
-        "endName": "b",
-        # "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng), encoding='utf-8'),
-        # "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng), encoding='utf-8'),
+        "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng), encoding='utf-8'),
+        "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng), encoding='utf-8'),
     }
 
     response = requests.post(url, headers=headers, json=data)
@@ -63,17 +61,24 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
         "startX": start_lng,
         "endY": end_lat,
         "endX": end_lng,
-        "speed": 15,
-        "startName": "a",
-        "endName": "b",
-        # "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng), encoding='utf-8'),
-        # "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng), encoding='utf-8'),
+        "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng), encoding='utf-8'),
+        "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng), encoding='utf-8'),
     }
 
     response = requests.post(url, headers=headers, json=data)
 
     if response.status_code == 200:
-        return response.json()
+        result = response.json()
+
+        for feature in result.get("features", []):
+            properties = feature.get("properties", {})
+            if "totalTime" in properties:
+                properties["totalTime"] = properties["totalTime"] // 4  # 전체 이동 시간 업데이트
+
+            if "time" in properties:
+                properties["time"] = properties["time"] // 4  # 구간별 이동 시간 업데이트
+
+        return result
     else:
         raise Exception(f"TMAP Bike API request failed with status {response.status_code}")
 
