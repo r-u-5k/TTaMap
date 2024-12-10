@@ -5,7 +5,7 @@ from .services import get_odsay_route, get_full_route, get_bike_route, get_walk_
 
 
 # Create your views here.
-def pt_route_view(request):
+def odsay_route_view(request):
     start_lat = request.GET.get('slat')
     start_lng = request.GET.get('slng')
     end_lat = request.GET.get('elat')

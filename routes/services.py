@@ -31,12 +31,12 @@ def get_walk_route(start_lat, start_lng, end_lat, end_lng):
         "Content-Type": "application/json"
     }
     data = {
-        "startY": start_lat,
         "startX": start_lng,
-        "endY": end_lat,
+        "startY": start_lat,
         "endX": end_lng,
-        "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng), encoding='utf-8'),
-        "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng), encoding='utf-8'),
+        "endY": end_lat,
+        "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng) or "출발지", encoding='utf-8'),
+        "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng) or "도착지", encoding='utf-8'),
     }
 
     response = requests.post(url, headers=headers, json=data)
@@ -57,33 +57,47 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
         "appKey": pa.TMAP_API_KEY,
         "Content-Type": "application/json"
     }
-    data = {
-        "startY": start_lat,
-        "startX": start_lng,
-        "endY": end_lat,
-        "endX": end_lng,
-        "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng), encoding='utf-8'),
-        "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng), encoding='utf-8'),
-    }
 
-    response = requests.post(url, headers=headers, json=data)
+    try:
+        start_name = reverse_geocoding(start_lat, start_lng) or "출발지"
+        end_name = reverse_geocoding(end_lat, end_lng) or "도착지"
 
-    if response.status_code == 200:
+        data = {
+            "startX": start_lng,
+            "startY": start_lat,
+            "endX": end_lng,
+            "endY": end_lat,
+            "startName": urllib.parse.quote(start_name, encoding='utf-8'),
+            "endName": urllib.parse.quote(end_name, encoding='utf-8'),
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+
+        if response.status_code != 200:
+            print(f"Response Text: {response.text}")
+            raise Exception(f"TMAP Bike API request failed with status {response.status_code}")
+
         result = response.json()
 
         for feature in result.get("features", []):
             properties = feature.get("properties", {})
             if "totalTime" in properties:
                 properties["totalTime"] = properties["totalTime"] // 4  # 전체 이동 시간 업데이트
-
             if "time" in properties:
                 properties["time"] = properties["time"] // 4  # 구간별 이동 시간 업데이트
 
         result["type"] = "bike"
-
         return result
-    else:
-        raise Exception(f"TMAP Bike API request failed with status {response.status_code}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"HTTP 요청 오류: {e}")
+        raise
+    except ValueError as e:
+        print(f"JSON 파싱 오류: {e}")
+        raise
+    except Exception as e:
+        print(f"기타 오류: {e}")
+        raise
 
 
 # 출발지 → 출발지 주변 따릉이 대여소(A) (도보)
