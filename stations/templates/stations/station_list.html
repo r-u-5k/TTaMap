@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}따릉이 대여소 목록{% endblock %}
+
+{% block content %}
+  <h2>대여소 목록</h2>
+  <ul>
+    {% for station in stations %}
+      <li>{{ station.name }} ({{ station.location }})</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

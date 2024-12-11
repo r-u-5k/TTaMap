@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}TTaMap{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+<header>
+  <h1>TTaMap</h1>
+  <nav>
+    <a href="{% url 'routes:route_map' %}">길찾기</a>
+    <a href="{% url 'stations:station_map' %}">따릉이 대여소</a>
+  </nav>
+</header>
+<main>
+  {% block content %}
+  {% endblock %}
+</main>
+<footer>
+  <p>© TTaMap 2024</p>
+</footer>
+</body>
+</html>
