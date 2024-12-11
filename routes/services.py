@@ -1,5 +1,5 @@
 import urllib.parse
-
+from geopy.distance import geodesic
 import requests
 
 import params as pa
@@ -59,23 +59,20 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
     }
 
     try:
-        start_name = reverse_geocoding(start_lat, start_lng) or "출발지"
-        end_name = reverse_geocoding(end_lat, end_lng) or "도착지"
-
         data = {
             "startX": start_lng,
             "startY": start_lat,
             "endX": end_lng,
             "endY": end_lat,
-            "startName": urllib.parse.quote(start_name, encoding='utf-8'),
-            "endName": urllib.parse.quote(end_name, encoding='utf-8'),
+            "startName": urllib.parse.quote(reverse_geocoding(start_lat, start_lng) or "출발지", encoding='utf-8'),
+            "endName": urllib.parse.quote(reverse_geocoding(end_lat, end_lng) or "도착지", encoding='utf-8'),
         }
 
         response = requests.post(url, headers=headers, json=data)
 
-        if response.status_code != 200:
-            print(f"Response Text: {response.text}")
-            raise Exception(f"TMAP Bike API request failed with status {response.status_code}")
+        # if response.status_code != 200:
+        #     print(f"Response Text: {response.text}")
+        #     raise Exception(f"TMAP Bike API request failed with status {response.status_code}")
 
         result = response.json()
 
@@ -102,7 +99,7 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
 
 # 출발지 → 출발지 주변 따릉이 대여소(A) (도보)
 # 출발지 주변 따릉이 대여소(A) → 대중교통 승차지 주변 따릉이 대여소(B) (따릉이)
-# 대중교통 승차지 주변 따릉이 대여소(B) → 대중교통 하차지 주변 따릉이 대여소(C) (대중교통 API)
+# 대중교통 승차지 주변 따릉이 대여소(B) → 대중교통 하차지 주변 따릉이 대여소(C) (대중교통)
 # 대중교통 하차지 주변 따릉이 대여소(C) → 도착지 주변 따릉이 대여소(D) (따릉이)
 # 도착지 주변 따릉이 대여소(D) → 도착지 (도보)
 
@@ -120,11 +117,13 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
     full_route = []
 
     # 출발지 주변 따릉이 대여소
-    bike_stations_A = get_near_stations(start_lat, start_lng, 500)
+    bike_stations_A = get_near_stations(start_lat, start_lng, 300)
     # 대중교통 승차지 주변 따릉이 대여소
-    bike_stations_B = get_near_stations(start_pt_station_lat, start_pt_station_lng, 500)
+    bike_stations_B = get_near_stations(start_pt_station_lat, start_pt_station_lng, 300)
 
-    if bike_stations_A and bike_stations_B:
+    distance_start2pt = geodesic((start_lat, start_lng), (start_pt_station_lat, start_pt_station_lng)).meters
+
+    if bike_stations_A and bike_stations_B and distance_start2pt > 100:
         bike_station_A = bike_stations_A[0]
         bike_station_A_lat = bike_station_A['latitude']
         bike_station_A_lng = bike_station_A['longitude']
@@ -132,38 +131,52 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
         bike_station_B_lat = bike_station_B['latitude']
         bike_station_B_lng = bike_station_B['longitude']
         route_start2A = get_walk_route(start_lat, start_lng, bike_station_A_lat, bike_station_A_lng)
-        route_A2B = get_bike_route(bike_station_A_lat, bike_station_A_lng, bike_station_B_lat, bike_station_B_lng)
-        full_route.append(route_start2A)
-        full_route.append(route_A2B)
+        distance_A2B = geodesic((bike_station_A_lat, bike_station_A_lng), (bike_station_B_lat, bike_station_B_lng)).meters
+        if distance_A2B > 100:
+            route_A2B = get_bike_route(bike_station_A_lat, bike_station_A_lng, bike_station_B_lat, bike_station_B_lng)
+            full_route.append(route_start2A)
+            full_route.append(route_A2B)
+        else:
+            route_start2pt = get_walk_route(start_lat, start_lng, start_pt_station_lat, start_pt_station_lng)
+            full_route.append(route_start2pt)
     else:
-        # 따릉이 대여소가 없으면 출발지에서 대중교통 승차지까지 도보로 이동
-        route_start2B = get_walk_route(start_lat, start_lng, start_pt_station_lat, start_pt_station_lng)
-        full_route.append(route_start2B)
+        # 출발지에서 대중교통 승차지까지 도보로 이동
+        route_start2pt = get_walk_route(start_lat, start_lng, start_pt_station_lat, start_pt_station_lng)
+        full_route.append(route_start2pt)
+        print("주변에 따릉이 대여소가 없거나 출발지에서 대중교통 승차지까지 100m 이하")
 
     # 대중교통 경로
     route_B2C = get_odsay_route(start_pt_station_lat, start_pt_station_lng, end_pt_station_lat, end_pt_station_lng)
     full_route.append(route_B2C)
 
-    # 대중교통 하차지 주변 따릉이 대여소
-    bike_stations_C = get_near_stations(end_pt_station_lat, end_pt_station_lng, 500)
-    # 도착지 주변 따릉이 대여소
-    bike_stations_D = get_near_stations(end_lat, end_lng, 500)
+    distance_pt2end = geodesic((end_pt_station_lat, end_pt_station_lng), (end_lat, end_lng)).meters
 
-    if bike_stations_C and bike_stations_D:
+    # 대중교통 하차지 주변 따릉이 대여소
+    bike_stations_C = get_near_stations(end_pt_station_lat, end_pt_station_lng, 300)
+    # 도착지 주변 따릉이 대여소
+    bike_stations_D = get_near_stations(end_lat, end_lng, 300)
+
+    if (bike_stations_C and bike_stations_D) and distance_pt2end > 100:
         bike_station_C = bike_stations_C[0]
         bike_station_C_lat = bike_station_C['latitude']
         bike_station_C_lng = bike_station_C['longitude']
         bike_station_D = bike_stations_D[0]
         bike_station_D_lat = bike_station_D['latitude']
         bike_station_D_lng = bike_station_D['longitude']
-        route_C2D = get_bike_route(bike_station_C_lat, bike_station_C_lng, bike_station_D_lat, bike_station_D_lng)
-        route_D2end = get_walk_route(bike_station_D_lat, bike_station_D_lng, end_lat, end_lng)
-        full_route.append(route_C2D)
-        full_route.append(route_D2end)
+        distance_C2D = geodesic((bike_station_C_lat, bike_station_C_lng), (bike_station_D_lat, bike_station_D_lng))
+        if distance_C2D > 100:
+            route_C2D = get_bike_route(bike_station_C_lat, bike_station_C_lng, bike_station_D_lat, bike_station_D_lng)
+            route_D2end = get_walk_route(bike_station_D_lat, bike_station_D_lng, end_lat, end_lng)
+            full_route.append(route_C2D)
+            full_route.append(route_D2end)
+        else:
+            route_pt2end = get_walk_route(end_pt_station_lat, end_pt_station_lng, end_lat, end_lng)
+            full_route.append(route_pt2end)
     else:
-        # 따릉이 대여소가 없으면 출발지에서 대중교통 승차지까지 도보로 이동
-        route_C2end = get_walk_route(end_pt_station_lat, end_pt_station_lng, end_lat, end_lng)
-        full_route.append(route_C2end)
+        # 대중교통 하차지에서 도착지까지 도보로 이동
+        route_pt2end = get_walk_route(end_pt_station_lat, end_pt_station_lng, end_lat, end_lng)
+        full_route.append(route_pt2end)
+        print("주변에 따릉이 대여소가 없거나 대중교통 하차지에서 도착지까지 100m 이하")
 
     return full_route
 

@@ -1,3 +1,5 @@
+import time
+
 import requests
 from geopy.distance import geodesic
 
@@ -130,6 +132,7 @@ def get_near_stations(latitude, longitude, radius):
 
     # 모든 대여소 데이터 가져오기
     stations = get_all_stations_data()
+    time.sleep(1)
     if not stations:
         print("따릉이 대여소 데이터가 비어 있습니다.")
         return []
