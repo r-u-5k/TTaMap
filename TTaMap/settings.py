@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import params as pa
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -82,8 +82,12 @@ WSGI_APPLICATION = "TTaMap.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "ttamap",
+        "USER": "postgres",
+        "PASSWORD": pa.DB_PASSWORD,
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
 
