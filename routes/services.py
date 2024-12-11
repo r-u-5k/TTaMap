@@ -134,6 +134,8 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
         distance_A2B = geodesic((bike_station_A_lat, bike_station_A_lng), (bike_station_B_lat, bike_station_B_lng)).meters
         if distance_A2B > 100:
             route_A2B = get_bike_route(bike_station_A_lat, bike_station_A_lng, bike_station_B_lat, bike_station_B_lng)
+            route_A2B["startBikeStation"] = bike_station_A["stationName"]
+            route_A2B["endBikeStation"] = bike_station_B["stationName"]
             full_route.append(route_start2A)
             full_route.append(route_A2B)
         else:
@@ -166,6 +168,8 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
         distance_C2D = geodesic((bike_station_C_lat, bike_station_C_lng), (bike_station_D_lat, bike_station_D_lng))
         if distance_C2D > 100:
             route_C2D = get_bike_route(bike_station_C_lat, bike_station_C_lng, bike_station_D_lat, bike_station_D_lng)
+            route_C2D["startBikeStation"] = bike_station_C["stationName"]
+            route_C2D["endBikeStation"] = bike_station_D["stationName"]
             route_D2end = get_walk_route(bike_station_D_lat, bike_station_D_lng, end_lat, end_lng)
             full_route.append(route_C2D)
             full_route.append(route_D2end)
@@ -181,54 +185,96 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
     return full_route
 
 
-def get_simple_route(data_list):
-    summary = []
-    for data in data_list:
-        data_type = data.get("type", "")
+def get_simple_route(start_lat, start_lng, end_lat, end_lng):
+    full_route = get_full_route(start_lat, start_lng, end_lat, end_lng)
 
-        # 도보/자전거 데이터 처리
-        if data_type in ["walk", "bike"]:
-            for feature in data.get("features", []):
-                properties = feature.get("properties", {})
-                geometry = feature.get("geometry", {})
-                if properties and geometry:
-                    summary.append({
-                        "type": data_type,
-                        "distance": properties.get("totalDistance", 0),
-                        "time": properties.get("totalTime", 0),
-                        "description": properties.get("description", ""),
-                        "coordinates": geometry.get("coordinates", [])
-                    })
+    total_distance = 0.0
+    total_time = 0
+    steps = []
 
-        # 대중교통 데이터 처리
-        elif data_type == "transit":
-            for path in data.get("result", {}).get("path", []):
-                for sub_path in path.get("subPath", []):
-                    if sub_path.get("trafficType") == 1:  # 지하철
-                        summary.append({
-                            "type": "subway",
-                            "line": sub_path.get("lane", [{}])[0].get("name", ""),
-                            "start": sub_path.get("startName", ""),
-                            "end": sub_path.get("endName", ""),
-                            "distance": sub_path.get("distance", 0),
-                            "time": sub_path.get("sectionTime", 0),
-                            "stationCount": sub_path.get("stationCount", 0)
+    for route in full_route:
+        if "type" in route and route["type"] in ["walk", "bike"]:
+            mode = route["type"]
+            start_bike_station = route.get("startBikeStation", "")
+            end_bike_station = route.get("endBikeStation", "")
+
+            route_distance = 0.0
+            route_time_sec = 0
+            for f in route.get("features", []):
+                if f.get("geometry", {}).get("type") == "LineString":
+                    distance = f.get("properties", {}).get("distance", 0)
+                    time = f.get("properties", {}).get("time", 0)
+                    route_distance += distance
+                    route_time_sec += time
+                    if mode == "walk":
+                        steps.append({
+                            "mode": mode,
+                            "distance": distance,
+                            "time": time,
                         })
-                    elif sub_path.get("trafficType") == 2:  # 버스
-                        summary.append({
-                            "type": "bus",
-                            "line": sub_path.get("lane", [{}])[0].get("busNo", ""),
-                            "start": sub_path.get("startName", ""),
-                            "end": sub_path.get("endName", ""),
-                            "distance": sub_path.get("distance", 0),
-                            "time": sub_path.get("sectionTime", 0),
-                            "stationCount": sub_path.get("stationCount", 0)
+                    elif mode == "bike":
+                        steps.append({
+                            "mode": mode,
+                            "distance": distance,
+                            "time": time,
+                            "startBikeStation": start_bike_station,
+                            "endBikeStation": end_bike_station,
                         })
-                    elif sub_path.get("trafficType") == 3:  # 도보
-                        summary.append({
-                            "type": "walk",
-                            "distance": sub_path.get("distance", 0),
-                            "time": sub_path.get("sectionTime", 0)
-                        })
+            total_distance += route_distance
+            total_time += route_time_sec
+
+        elif "result" in route and "path" in route["result"]:
+            path = route["result"]["path"][0]
+            info = path["info"]
+            transit_distance = info.get("totalDistance", 0)
+            transit_time_min = info.get("totalTime", 0)
+            # trafficType: 1(지하철), 2(버스), 3(도보)
+            for sp in path.get("subPath", []):
+                ttype = sp.get("trafficType", 0)
+                sp_distance = sp.get("distance", 0)
+                sp_time = sp.get("sectionTime", 0)
+                step_mode = "transit" if ttype in [1, 2] else "walk"
+
+                start_station = sp.get("startName", "") if step_mode == "transit" else ""
+                end_station = sp.get("endName", "") if step_mode == "transit" else ""
+
+                steps.append({
+                    "mode": step_mode,
+                    "distance": sp_distance,
+                    "time": sp_time * 60,
+                    "startStation": start_station,
+                    "endStation": end_station
+                })
+            total_distance += transit_distance
+            total_time += transit_time_min * 60
+
+    filtered_steps = []
+    for step in steps:
+        if not (step["mode"] == "walk" and step["distance"] == 0 and step["time"] == 0):
+            filtered_steps.append(step)
+
+    steps = filtered_steps
+
+    merged_steps = []
+    for step in steps:
+        if merged_steps and merged_steps[-1]["mode"] == step["mode"]:
+            # 같은 모드면 distance, time 합산
+            merged_steps[-1]["distance"] += step["distance"]
+            merged_steps[-1]["time"] += step["time"]
+
+            # 만약 대중교통 구간이라면 startStation은 유지, endStation은 새 구간의 endStation으로 업데이트
+            if step["mode"] == "transit":
+                merged_steps[-1]["endStation"] = step["endStation"]
+        else:
+            # 모드가 다르거나 merged_steps가 비어있으면 새로 추가
+            merged_steps.append(step)
+
+    steps = merged_steps
+
+    summary = {
+        "totalDistance": total_distance,
+        "totalTime": total_time,
+        "steps": steps
+    }
 
     return summary

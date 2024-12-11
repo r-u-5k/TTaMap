@@ -66,8 +66,8 @@ def simple_route_view(request):
     end_lat = request.GET.get('elat')
     end_lng = request.GET.get('elng')
     try:
-        data = get_full_route(start_lat, start_lng, end_lat, end_lng)
-        return get_simple_route(data)
+        simple_data = get_simple_route(start_lat, start_lng, end_lat, end_lng)
+        return JsonResponse(simple_data, safe=False)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
