@@ -3,15 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% load static %}
   <title>{% block title %}따맵{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
 <header>
-  <h1>TTaMap</h1>
+  <div class="container" align="center">
+    <img src="../static/images/logo-transparent.png" width="60%" />
+  </div>
+  
   <nav>
     <a href="{% url 'routes:route' %}">길찾기</a>
-    <a href="{% url 'stations:station' %}">따릉이 대여소 검색</a>
+    <a href="{% url 'stations:station_list' %}">따릉이 대여소 검색</a>
   </nav>
 </header>
 <main>

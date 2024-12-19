@@ -71,3 +71,6 @@ def simple_route_view(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+
+def route_view(request):
+    return render(request, 'routes/route.html')
