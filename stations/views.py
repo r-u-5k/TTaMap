@@ -16,12 +16,21 @@ def station_data_view(request):
     station_data_temp = get_station_data(station_id)
     if not station_data_temp:
         return JsonResponse({'error': '정류소 데이터를 찾을 수 없습니다.'}, status=404)
-    station_data = station_data_temp[0]
+    station = station_data_temp[0]
     # 주차된 따릉이 대수: station_data['parkingBikeTotCnt']
-    return render(request, 'stations/station_info.html', {'station': station_data})
+    return render(request, 'stations/station_info.html', {'station': station})
 
 
 def station_list_view(request):
-    stations = get_all_stations_data()
+    data = get_all_stations_data()
+
+    stations = [
+        {
+            'name': station.get('stationName', ''),
+            'location': f"{station.get('stationLatitude')}, {station.get('stationLongitude')}",
+            'id': station.get('stationId'),
+        }
+        for station in data
+    ]
     return render(request, 'stations/station_list.html', {'stations': stations})
 

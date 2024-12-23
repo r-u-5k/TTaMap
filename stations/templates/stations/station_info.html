@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ station.stationName }} 정보{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h2 class="mb-4">{{ station.stationName }}</h2>
+    <ul class="list-group">
+      <li class="list-group-item"><strong>주차된 따릉이 대수:</strong> {{ station.parkingBikeTotCnt }}</li>
+      <li class="list-group-item"><strong>대여소 ID:</strong> {{ station.stationId }}</li>
+      <li class="list-group-item"><strong>위치:</strong> {{ station.stationLatitude }}, {{ station.stationLongitude }}</li>
+      <li class="list-group-item"><strong>전체 거치대 수:</strong> {{ station.rackTotCnt }}</li>
+    </ul>
+    <a href="{% url 'stations:station_list' %}" class="btn btn-secondary mt-3">목록으로 돌아가기</a>
+  </div>
+{% endblock %}

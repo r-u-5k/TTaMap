@@ -3,10 +3,15 @@
 {% block title %}따릉이 대여소 목록{% endblock %}
 
 {% block content %}
-  <h2>대여소 목록</h2>
-  <ul>
+  <h2>&nbsp;대여소 목록</h2>
+  <ul class="list-group">
     {% for station in stations %}
-      <li>{{ station.name }} ({{ station.location }})</li>
+      <li class="list-group-item">
+        <a href="{% url 'station_data' %}?id={{ station.id }}">
+          {{ station.name }}
+        </a>
+        <span class="text-muted">({{ station.location }})</span>
+      </li>
     {% endfor %}
   </ul>
 {% endblock %}
