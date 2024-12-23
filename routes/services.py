@@ -276,5 +276,5 @@ def get_simple_route(start_lat, start_lng, end_lat, end_lng):
         "totalTime": total_time,
         "steps": steps
     }
-
+    print("경로 요약:", summary)
     return summary

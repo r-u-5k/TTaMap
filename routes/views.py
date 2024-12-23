@@ -69,18 +69,8 @@ def simple_route_view(request):
     if not (start_lat and start_lng and end_lat and end_lng):
         return HttpResponseBadRequest("출발지와 도착지의 좌표가 필요합니다.")
 
-    try:
-        # 예시 경로 데이터
-        route = [
-            {"lat": start_lat, "lng": start_lng},
-            {"lat": end_lat, "lng": end_lng},
-        ]
-
-        # 템플릿 렌더링
-        return render(request, 'routes/route.html', {'route': route})
-    except Exception as e:
-        return render(request, 'routes/error.html', {'error': str(e)})
-
+    data = get_simple_route(float(start_lat), float(start_lng), float(end_lat), float(end_lng))
+    return JsonResponse(data, safe=False)
 
 def route_view(request):
     return render(request, 'routes/route_search.html')

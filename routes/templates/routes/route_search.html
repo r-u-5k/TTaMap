@@ -52,7 +52,7 @@
           var listElement = document.getElementById(listId);
           listElement.innerHTML = ''; // 기존 리스트 초기화
 
-          data.forEach(function (place) {
+          data.forEach((place) => {
             var listItem = document.createElement('li');
             listItem.textContent = place.place_name;
             listItem.className = 'list-group-item list-group-item-action';
