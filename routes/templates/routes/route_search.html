@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}길찾기{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">길찾기</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <label for="start" class="form-label">출발지</label>
+        <div class="input-group">
+          <input type="text" class="form-control" id="start" placeholder="출발지를 입력하세요">
+          <button id="startSearch" class="btn btn-secondary">검색</button>
+        </div>
+        <ul id="startList" class="list-group mt-2"></ul>
+      </div>
+      <div class="col-md-6">
+        <label for="end" class="form-label">도착지</label>
+        <div class="input-group">
+          <input type="text" class="form-control" id="end" placeholder="도착지를 입력하세요">
+          <button id="endSearch" class="btn btn-secondary">검색</button>
+        </div>
+        <ul id="endList" class="list-group mt-2"></ul>
+      </div>
+    </div>
+    <button id="searchRoute" class="btn btn-primary mt-3">경로 찾기</button>
+    <div id="map" class="mt-4" style="width: 100%; height: 500px;"></div>
+  </div>
+
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=68e89ee11a7e6c57c25d20fed76ff33a&libraries=services"></script>
+  <script>
+    var mapContainer = document.getElementById('map');
+    var mapOption = {
+      center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심 좌표
+      level: 5
+    };
+    var map = new kakao.maps.Map(mapContainer, mapOption);
+    var ps = new kakao.maps.services.Places();
+
+    var startCoords = null;
+    var endCoords = null;
+
+    function searchPlaces(inputId, listId, callback) {
+      var keyword = document.getElementById(inputId).value.trim();
+      if (!keyword) {
+        alert('검색어를 입력하세요.');
+        return;
+      }
+
+      ps.keywordSearch(keyword, function (data, status) {
+        if (status === kakao.maps.services.Status.OK) {
+          var listElement = document.getElementById(listId);
+          listElement.innerHTML = ''; // 기존 리스트 초기화
+
+          data.forEach(function (place) {
+            var listItem = document.createElement('li');
+            listItem.textContent = place.place_name;
+            listItem.className = 'list-group-item list-group-item-action';
+            listItem.onclick = function () {
+              // 입력란 업데이트
+              document.getElementById(inputId).value = place.place_name;
+
+              // 좌표 값 전달
+              callback({ lat: place.y, lng: place.x, name: place.place_name });
+
+              // 리스트 초기화
+              listElement.innerHTML = '';
+            };
+            listElement.appendChild(listItem);
+          });
+        } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+          alert('검색 결과가 없습니다.');
+        } else {
+          alert('검색 중 문제가 발생했습니다.');
+          console.error('검색 실패. 상태 코드:', status);
+        }
+      });
+    }
+
+    document.getElementById('startSearch').addEventListener('click', function () {
+      searchPlaces('start', 'startList', function (coords) {
+        startCoords = coords;
+        console.log('출발지 선택:', coords);
+      });
+    });
+
+    document.getElementById('endSearch').addEventListener('click', function () {
+      searchPlaces('end', 'endList', function (coords) {
+        endCoords = coords;
+        console.log('도착지 선택:', coords);
+      });
+    });
+
+
+    document.getElementById('searchRoute').addEventListener('click', function () {
+      if (!startCoords || !endCoords) {
+        alert('출발지와 도착지를 모두 선택하세요.');
+        return;
+      }
+
+      fetch(`/route/api/simple?slat=${startCoords.lat}&slng=${startCoords.lng}&elat=${endCoords.lat}&elng=${endCoords.lng}`)
+          .then(response => response.json())
+          .then(data => {
+            console.log(data);
+            displayRoute(data.route);
+          })
+          .catch(error => {
+            console.error('경로 요청 오류:', error);
+            alert('경로 요청 중 문제가 발생했습니다.');
+          });
+    });
+
+    function displayRoute(route) {
+      var path = route.map(coord => new kakao.maps.LatLng(coord.lat, coord.lng));
+      var polyline = new kakao.maps.Polyline({
+        path: path,
+        strokeWeight: 5,
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.8,
+        strokeStyle: 'solid'
+      });
+      polyline.setMap(map);
+
+      if (path.length > 0) {
+        map.setCenter(path[0]);
+      }
+    }
+  </script>
+{% endblock %}

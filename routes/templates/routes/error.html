@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}오류{% endblock %}
+
+{% block content %}
+  <div class="alert alert-danger" role="alert">
+    <h4 class="alert-heading">오류 발생</h4>
+    <p>{{ error }}</p>
+  </div>
+{% endblock %}

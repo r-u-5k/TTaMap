@@ -8,6 +8,7 @@ from .services import get_station_data, get_all_stations_data
 def map_view(request):
     return render(request, 'maps/map.html')
 
+
 def station_data_view(request):
     station_id = str(request.GET.get('id'))
     station_data_temp = get_station_data(station_id)
