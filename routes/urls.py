@@ -9,4 +9,5 @@ urlpatterns = [
     path('api/full', views.full_route_view, name="full_route"),
     path('api/simple', views.simple_route_view, name="simple_route"),
     path('', views.route_view, name="route"),
+    path('result/', views.route_result_view, name="route_result"),
 ]

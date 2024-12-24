@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}길찾기 결과{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">길찾기 결과</h2>
+
+    {% if route_data %}
+      <h3>총 거리: {{ route_data.totalDistance }}m</h3>
+      <h3>총 시간: {{ route_data.totalTime }}초</h3>
+
+      <ul class="list-group mt-4">
+        {% for step in route_data.steps %}
+          <li class="list-group-item">
+            <strong>이동 수단:</strong>
+            {% if step.mode == "walk" %}
+              도보
+            {% elif step.mode == "bike" %}
+              자전거
+            {% elif step.mode == "transit" %}
+              대중교통
+            {% else %}
+              {{ step.mode }}
+            {% endif %}<br>
+            <strong>거리:</strong> {{ step.distance }}m<br>
+            <strong>시간:</strong> {{ step.time }}초<br>
+            {% if step.mode == "bike" %}
+              <strong>출발 대여소:</strong> {{ step.startBikeStation }}<br>
+              <strong>도착 대여소:</strong> {{ step.endBikeStation }}<br>
+            {% elif step.mode == "transit" %}
+              <strong>출발역:</strong> {{ step.startStation }}<br>
+              <strong>도착역:</strong> {{ step.endStation }}<br>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+
+      <div id="map" class="mt-4" style="width: 100%; height: 500px;"></div>
+    {% else %}
+      <p>경로 데이터를 불러오는 데 문제가 발생했습니다.</p>
+    {% endif %}
+  </div>
+
+  <script type="text/javascript"
+          src="//dapi.kakao.com/v2/maps/sdk.js?appkey=68e89ee11a7e6c57c25d20fed76ff33a&libraries=services"></script>
+  <script>
+    {% if route_data %}
+      var mapContainer = document.getElementById('map');
+      var mapOption = {
+        center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심 좌표
+        level: 5
+      };
+      var map = new kakao.maps.Map(mapContainer, mapOption);
+
+      // 출발지와 도착지 표시
+      var markers = [];
+      {% for step in route_data.steps %}
+        {% if loop.first %}
+          markers.push({
+            name: "출발지",
+            lat: {{ step.lat }},
+            lng: {{ step.lng }}
+          });
+        {% endif %}
+        {% if step.mode == "bike" %}
+          markers.push({
+            name: "{{ step.startBikeStation }}",
+            lat: {{ step.startBikeLat }},
+            lng: {{ step.startBikeLng }}
+          });
+          markers.push({
+            name: "{{ step.endBikeStation }}",
+            lat: {{ step.endBikeLat }},
+            lng: {{ step.endBikeLng }}
+          });
+        {% elif step.mode == "transit" %}
+          markers.push({
+            name: "{{ step.startStation }}",
+            lat: {{ step.startStationLat }},
+            lng: {{ step.startStationLng }}
+          });
+          markers.push({
+            name: "{{ step.endStation }}",
+            lat: {{ step.endStationLat }},
+            lng: {{ step.endStationLng }}
+          });
+        {% endif %}
+        {% if loop.last %}
+          markers.push({
+            name: "도착지",
+            lat: {{ step.lat }},
+            lng: {{ step.lng }}
+          });
+        {% endif %}
+      {% endfor %}
+
+      // 지도에 마커 추가
+      markers.forEach(function(markerData) {
+        var marker = new kakao.maps.Marker({
+          position: new kakao.maps.LatLng(markerData.lat, markerData.lng),
+          map: map
+        });
+
+        var infowindow = new kakao.maps.InfoWindow({
+          content: `<div style="padding:5px;">${markerData.name}</div>`
+        });
+
+        kakao.maps.event.addListener(marker, 'mouseover', function () {
+          infowindow.open(map, marker);
+        });
+
+        kakao.maps.event.addListener(marker, 'mouseout', function () {
+          infowindow.close();
+        });
+      });
+
+      // 지도의 중심을 첫 번째 마커로 이동
+      if (markers.length > 0) {
+        map.setCenter(new kakao.maps.LatLng(markers[0].lat, markers[0].lng));
+      }
+    {% endif %}
+  </script>
+{% endblock %}

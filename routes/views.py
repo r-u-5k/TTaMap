@@ -1,6 +1,6 @@
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.shortcuts import render
-
+import json
 from .services import get_odsay_route, get_full_route, get_bike_route, get_walk_route, get_simple_route
 
 
@@ -72,5 +72,16 @@ def simple_route_view(request):
     data = get_simple_route(float(start_lat), float(start_lng), float(end_lat), float(end_lng))
     return JsonResponse(data, safe=False)
 
+
 def route_view(request):
     return render(request, 'routes/route_search.html')
+
+
+def route_result_view(request):
+    route_data = request.GET.get('routeData')
+    if route_data:
+        try:
+            route_data = json.loads(route_data)
+        except json.JSONDecodeError:
+            route_data = None
+    return render(request, 'routes/route_result.html', {'route_data': route_data})
