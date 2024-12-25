@@ -42,12 +42,12 @@
                       text-align: center; 
                       border-radius: 50%; 
                       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                    ">
+                    "
+                    onclick="showInfoWindow('${station.stationName}', '${station.parkingBikeTotCnt}', ${station.stationLatitude}, ${station.stationLongitude})">
                     ${station.parkingBikeTotCnt}
                   </div>
                 `;
 
-              // 사용자 정의 오버레이 생성
               var position = new kakao.maps.LatLng(
                   parseFloat(station.stationLatitude),
                   parseFloat(station.stationLongitude)
@@ -58,30 +58,19 @@
                 content: content,
                 map: map, // 지도 객체에 추가
               });
-
-              // 클릭 이벤트 추가 (InfoWindow 사용)
-              kakao.maps.event.addListener(customOverlay, 'click', () => {
-                var infowindow = new kakao.maps.InfoWindow({
-                  content: `<div style="padding:5px;">
-                  <strong>${station.stationName}</strong>
-                </div>`
-                });
-                infowindow.open(map, position);
-              });
-
             });
           });
 
       function displayCenter(locPosition) {
         var content = `
           <div style="
-              width: 15px; 
-              height: 15px; 
-              background-color: red; 
-              border: 2px solid white; 
-              border-radius: 50%; 
+              width: 15px;
+              height: 15px;
+              background-color: red;
+              border: 2px solid white;
+              border-radius: 50%;
               box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-              position: absolute; 
+              position: absolute;
               transform: translate(-50%, -50%);
           ">
           </div>
@@ -93,8 +82,39 @@
           map: map
         });
 
-        // 지도의 중심 위치를 변경
         map.setCenter(locPosition);
+      }
+
+      function showInfoWindow(name, bikeCount, lat, lng) {
+        var content = `
+          <div style="padding:10px; position:relative;">
+            <button style="position:absolute; top:5px; right:5px; background:none; border:none;" onclick="closeInfoWindow()">x</button>
+            ${name}
+          </div>
+        `;
+
+        // 기존 InfoWindow를 닫기 전에 변수에 저장
+        if (window.currentInfoWindow) {
+          window.currentInfoWindow.close();
+        }
+
+        // 새로운 InfoWindow 생성
+        var infowindow = new kakao.maps.InfoWindow({
+          position: new kakao.maps.LatLng(lat, lng),
+          content: content
+        });
+
+        infowindow.open(map, null);
+
+        // 현재 열려있는 InfoWindow를 저장
+        window.currentInfoWindow = infowindow;
+      }
+
+      function closeInfoWindow() {
+        if (window.currentInfoWindow) {
+          window.currentInfoWindow.close();
+          window.currentInfoWindow = null;
+        }
       }
     }
   </script>

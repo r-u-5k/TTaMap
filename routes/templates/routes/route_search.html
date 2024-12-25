@@ -32,7 +32,7 @@
   <script>
     var mapContainer = document.getElementById('map');
     var mapOption = {
-      center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심 좌표
+      center: new kakao.maps.LatLng(37.541847, 127.078553),
       level: 5
     };
     var map = new kakao.maps.Map(mapContainer, mapOption);
@@ -62,7 +62,7 @@
               document.getElementById(inputId).value = place.place_name;
 
               // 좌표 값 전달
-              callback({lat: place.y, lng: place.x, name: place.place_name});
+              callback({ lat: place.y, lng: place.x, name: place.place_name });
 
               // 리스트 초기화
               listElement.innerHTML = '';
@@ -115,6 +115,44 @@
       }
     }
 
+    // 대여소 데이터 표시
+    fetch('/map/api/stations')
+        .then(response => response.json())
+        .then(data => {
+          var stations = data.stations;
+
+          stations.forEach((station) => {
+            var content = `
+              <div style="
+                  width: 40px; 
+                  height: 40px; 
+                  background-color: green; 
+                  color: white; 
+                  font-size: 14px; 
+                  line-height: 40px; 
+                  text-align: center; 
+                  border-radius: 50%; 
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+              ">
+                ${station.parkingBikeTotCnt}
+              </div>
+          `;
+
+            var position = new kakao.maps.LatLng(
+                parseFloat(station.stationLatitude),
+                parseFloat(station.stationLongitude)
+            );
+
+            var customOverlay = new kakao.maps.CustomOverlay({
+              position: position,
+              content: content,
+              map: map
+            });
+          });
+        })
+        .catch(error => console.error("대여소 데이터를 불러오는 중 오류:", error));
+
+    // 경로 검색 버튼
     document.getElementById('searchRoute').addEventListener('click', function () {
       if (!startCoords || !endCoords) {
         alert('출발지와 도착지를 모두 선택하세요.');

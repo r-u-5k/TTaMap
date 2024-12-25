@@ -17,7 +17,7 @@
             {% if step.mode == "walk" %}
               도보
             {% elif step.mode == "bike" %}
-              자전거
+              따릉이
             {% elif step.mode == "transit" %}
               대중교통
             {% else %}
@@ -45,80 +45,54 @@
   <script type="text/javascript"
           src="//dapi.kakao.com/v2/maps/sdk.js?appkey=68e89ee11a7e6c57c25d20fed76ff33a&libraries=services"></script>
   <script>
-    {% if route_data %}
-      var mapContainer = document.getElementById('map');
-      var mapOption = {
-        center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 중심 좌표
-        level: 5
-      };
-      var map = new kakao.maps.Map(mapContainer, mapOption);
+    var mapContainer = document.getElementById('map'); // 지도를 표시할 div
+    var mapOption = {
+      center: new kakao.maps.LatLng(37.541847, 127.078553), // 초기 지도 중심 좌표
+      level: 5 // 확대 레벨
+    };
+    var map = new kakao.maps.Map(mapContainer, mapOption);
 
-      // 출발지와 도착지 표시
-      var markers = [];
+    // 마커 데이터 배열
+    var markers = [
       {% for step in route_data.steps %}
         {% if loop.first %}
-          markers.push({
-            name: "출발지",
-            lat: {{ step.lat }},
-            lng: {{ step.lng }}
-          });
+          { name: "출발지", lat: {{ step.startLat }}, lng: {{ step.startLng }} },
         {% endif %}
         {% if step.mode == "bike" %}
-          markers.push({
-            name: "{{ step.startBikeStation }}",
-            lat: {{ step.startBikeLat }},
-            lng: {{ step.startBikeLng }}
-          });
-          markers.push({
-            name: "{{ step.endBikeStation }}",
-            lat: {{ step.endBikeLat }},
-            lng: {{ step.endBikeLng }}
-          });
+          { name: "{{ step.startBikeStation }}", lat: {{ step.startBikeLat }}, lng: {{ step.startBikeLng }} },
+          { name: "{{ step.endBikeStation }}", lat: {{ step.endBikeLat }}, lng: {{ step.endBikeLng }} },
         {% elif step.mode == "transit" %}
-          markers.push({
-            name: "{{ step.startStation }}",
-            lat: {{ step.startStationLat }},
-            lng: {{ step.startStationLng }}
-          });
-          markers.push({
-            name: "{{ step.endStation }}",
-            lat: {{ step.endStationLat }},
-            lng: {{ step.endStationLng }}
-          });
+          { name: "{{ step.startStation }}", lat: {{ step.startStationLat }}, lng: {{ step.startStationLng }} },
+          { name: "{{ step.endStation }}", lat: {{ step.endStationLat }}, lng: {{ step.endStationLng }} },
         {% endif %}
         {% if loop.last %}
-          markers.push({
-            name: "도착지",
-            lat: {{ step.lat }},
-            lng: {{ step.lng }}
-          });
+          { name: "도착지", lat: {{ step.endLat }}, lng: {{ step.endLng }} },
         {% endif %}
       {% endfor %}
+    ];
 
-      // 지도에 마커 추가
-      markers.forEach(function(markerData) {
-        var marker = new kakao.maps.Marker({
-          position: new kakao.maps.LatLng(markerData.lat, markerData.lng),
-          map: map
-        });
-
-        var infowindow = new kakao.maps.InfoWindow({
-          content: `<div style="padding:5px;">${markerData.name}</div>`
-        });
-
-        kakao.maps.event.addListener(marker, 'mouseover', function () {
-          infowindow.open(map, marker);
-        });
-
-        kakao.maps.event.addListener(marker, 'mouseout', function () {
-          infowindow.close();
-        });
+    markers.forEach(function (markerData) {
+      // 마커 생성
+      var marker = new kakao.maps.Marker({
+        map: map,
+        position: new kakao.maps.LatLng(markerData.lat, markerData.lng),
+        title: markerData.name,
       });
 
-      // 지도의 중심을 첫 번째 마커로 이동
-      if (markers.length > 0) {
-        map.setCenter(new kakao.maps.LatLng(markers[0].lat, markers[0].lng));
-      }
-    {% endif %}
+      // 정보창 생성
+      var infowindow = new kakao.maps.InfoWindow({
+        content: `<div style="padding:5px; word-break:keep-all;">${markerData.name}</div>`
+      });
+
+      // 마우스 이벤트 등록
+      kakao.maps.event.addListener(marker, 'mouseover', function () {
+        infowindow.open(map, marker);
+      });
+
+      kakao.maps.event.addListener(marker, 'mouseout', function () {
+        infowindow.close();
+      });
+    });
+
   </script>
 {% endblock %}

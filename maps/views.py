@@ -15,7 +15,6 @@ def station_data_view(request):
     if not station_data_temp:
         return JsonResponse({'error': '정류소 데이터를 찾을 수 없습니다.'}, status=404)
     station = station_data_temp[0]
-    # 주차된 따릉이 대수: station_data['parkingBikeTotCnt']
     return render(request, 'stations/station_info.html', {'station': station})
 
 

@@ -94,7 +94,7 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
 
 # 출발지 → 출발지 주변 따릉이 대여소(A) (도보)
 # 출발지 주변 따릉이 대여소(A) → 대중교통 승차지 주변 따릉이 대여소(B) (따릉이)
-# 대중교통 승차지 주변 따릉이 대여소(B) → 대중교통 하차지 주변 따릉이 대여소(C) (대중교통)
+# 대중교통 승차지 → 대중교통 하차지 (대중교통)
 # 대중교통 하차지 주변 따릉이 대여소(C) → 도착지 주변 따릉이 대여소(D) (따릉이)
 # 도착지 주변 따릉이 대여소(D) → 도착지 (도보)
 
@@ -130,11 +130,19 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
         if distance_A2B > 100:
             route_A2B = get_bike_route(bike_station_A_lat, bike_station_A_lng, bike_station_B_lat, bike_station_B_lng)
             route_A2B["startBikeStation"] = bike_station_A["stationName"]
+            route_A2B["startBikeLat"] = bike_station_A_lat
+            route_A2B["startBikeLng"] = bike_station_A_lng
             route_A2B["endBikeStation"] = bike_station_B["stationName"]
+            route_A2B["endBikeLat"] = bike_station_B_lat
+            route_A2B["endBikeLng"] = bike_station_B_lng
             full_route.append(route_start2A)
             full_route.append(route_A2B)
         else:
             route_start2pt = get_walk_route(start_lat, start_lng, start_pt_station_lat, start_pt_station_lng)
+            route_start2pt["startLat"] = start_lat
+            route_start2pt["startLng"] = start_lng
+            route_start2pt["endLat"] = start_pt_station_lat
+            route_start2pt["endLng"] = start_pt_station_lng
             full_route.append(route_start2pt)
     else:
         # 출발지에서 대중교통 승차지까지 도보로 이동
@@ -164,7 +172,11 @@ def get_full_route(start_lat, start_lng, end_lat, end_lng):
         if distance_C2D > 100:
             route_C2D = get_bike_route(bike_station_C_lat, bike_station_C_lng, bike_station_D_lat, bike_station_D_lng)
             route_C2D["startBikeStation"] = bike_station_C["stationName"]
+            route_C2D["startBikeLat"] = bike_station_C_lat
+            route_C2D["startBikeLng"] = bike_station_C_lng
             route_C2D["endBikeStation"] = bike_station_D["stationName"]
+            route_C2D["endBikeLat"] = bike_station_D_lat
+            route_C2D["endBikeLng"] = bike_station_D_lng
             route_D2end = get_walk_route(bike_station_D_lat, bike_station_D_lng, end_lat, end_lng)
             full_route.append(route_C2D)
             full_route.append(route_D2end)
@@ -191,7 +203,11 @@ def get_simple_route(start_lat, start_lng, end_lat, end_lng):
         if "type" in route and route["type"] in ["walk", "bike"]:
             mode = route["type"]
             start_bike_station = route.get("startBikeStation", "")
+            start_bike_station_lat = route.get("startBikeLat", "")
+            start_bike_station_lng = route.get("endBikeLat", "")
             end_bike_station = route.get("endBikeStation", "")
+            end_bike_station_lat = route.get("endBikeLat", "")
+            end_bike_station_lng = route.get("endBikeLng", "")
 
             route_distance = 0.0
             route_time_sec = 0
@@ -206,6 +222,10 @@ def get_simple_route(start_lat, start_lng, end_lat, end_lng):
                             "mode": mode,
                             "distance": distance,
                             "time": time,
+                            "startLat": start_lat,
+                            "startLng": start_lng,
+                            "endLat": end_lat,
+                            "endLng": end_lng,
                         })
                     elif mode == "bike":
                         steps.append({
@@ -214,6 +234,10 @@ def get_simple_route(start_lat, start_lng, end_lat, end_lng):
                             "time": time,
                             "startBikeStation": start_bike_station,
                             "endBikeStation": end_bike_station,
+                            "startBikeLat": start_bike_station_lat,
+                            "startBikeLng": start_bike_station_lng,
+                            "endBikeLat": end_bike_station_lat,
+                            "endBikeLng": end_bike_station_lng,
                         })
             total_distance += route_distance
             total_time += route_time_sec
@@ -232,13 +256,21 @@ def get_simple_route(start_lat, start_lng, end_lat, end_lng):
 
                 start_station = sp.get("startName", "") if step_mode == "transit" else ""
                 end_station = sp.get("endName", "") if step_mode == "transit" else ""
+                start_station_lat = sp.get("startY", "")
+                start_station_lng = sp.get("startX", "")
+                end_station_lat = sp.get("endY", "")
+                end_station_lng = sp.get("endX", "")
 
                 steps.append({
                     "mode": step_mode,
                     "distance": sp_distance,
                     "time": sp_time * 60,
                     "startStation": start_station,
-                    "endStation": end_station
+                    "endStation": end_station,
+                    "startStationLat": start_station_lat,
+                    "startStationLng": start_station_lng,
+                    "endStationLat": end_station_lat,
+                    "endStationLng": end_station_lng,
                 })
             total_distance += transit_distance
             total_time += transit_time_min * 60
