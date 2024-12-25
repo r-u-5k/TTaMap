@@ -54,29 +54,25 @@
 
     // 마커 데이터 배열
     var markers = [
+      {name: "출발지", lat: {{ route_data.steps.0.startLat }}, lng: {{ route_data.steps.0.startLng }}},
       {% for step in route_data.steps %}
-        {% if loop.first %}
-          { name: "출발지", lat: {{ step.startLat }}, lng: {{ step.startLng }} },
-        {% endif %}
         {% if step.mode == "bike" %}
-          { name: "{{ step.startBikeStation }}", lat: {{ step.startBikeLat }}, lng: {{ step.startBikeLng }} },
-          { name: "{{ step.endBikeStation }}", lat: {{ step.endBikeLat }}, lng: {{ step.endBikeLng }} },
+          {name: "{{ step.startBikeStation }}", lat: {{ step.startBikeLat }}, lng: {{ step.startBikeLng }}},
+          {name: "{{ step.endBikeStation }}", lat: {{ step.endBikeLat }}, lng: {{ step.endBikeLng }}},
         {% elif step.mode == "transit" %}
-          { name: "{{ step.startStation }}", lat: {{ step.startStationLat }}, lng: {{ step.startStationLng }} },
-          { name: "{{ step.endStation }}", lat: {{ step.endStationLat }}, lng: {{ step.endStationLng }} },
-        {% endif %}
-        {% if loop.last %}
-          { name: "도착지", lat: {{ step.endLat }}, lng: {{ step.endLng }} },
+          {name: "{{ step.startStation }}", lat: {{ step.startStationLat }}, lng: {{ step.startStationLng }}},
+          {name: "{{ step.endStation }}", lat: {{ step.endStationLat }}, lng: {{ step.endStationLng }}},
         {% endif %}
       {% endfor %}
     ];
 
+    // 지도에 마커 추가
     markers.forEach(function (markerData) {
       // 마커 생성
       var marker = new kakao.maps.Marker({
         map: map,
         position: new kakao.maps.LatLng(markerData.lat, markerData.lng),
-        title: markerData.name,
+        title: markerData.name
       });
 
       // 정보창 생성
@@ -94,5 +90,10 @@
       });
     });
 
+    // 지도의 중심을 첫 번째 마커로 이동
+    if (markers.length > 0) {
+      map.setCenter(new kakao.maps.LatLng(markers[0].lat, markers[0].lng));
+    }
   </script>
+
 {% endblock %}
