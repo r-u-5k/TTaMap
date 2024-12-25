@@ -21,4 +21,4 @@ def station_data_view(request):
 
 def stations_data(request):
     stations = get_all_stations_data()
-    return render(request, 'stations/station_list.html', {'stations': stations})
+    return JsonResponse({'stations': stations})

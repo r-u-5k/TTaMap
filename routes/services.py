@@ -69,19 +69,14 @@ def get_bike_route(start_lat, start_lng, end_lat, end_lng):
         }
 
         response = requests.post(url, headers=headers, json=data)
-
-        # if response.status_code != 200:
-        #     print(f"Response Text: {response.text}")
-        #     raise Exception(f"TMAP Bike API request failed with status {response.status_code}")
-
         result = response.json()
 
         for feature in result.get("features", []):
             properties = feature.get("properties", {})
             if "totalTime" in properties:
-                properties["totalTime"] = properties["totalTime"] // 4  # 전체 이동 시간 업데이트
+                properties["totalTime"] = properties["totalTime"] // 4
             if "time" in properties:
-                properties["time"] = properties["time"] // 4  # 구간별 이동 시간 업데이트
+                properties["time"] = properties["time"] // 4
 
         result["type"] = "bike"
         return result

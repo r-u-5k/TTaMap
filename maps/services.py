@@ -1,8 +1,4 @@
-import time
-import urllib.parse
-
 import requests
-from geopy.distance import geodesic
 
 import params as pa
 
