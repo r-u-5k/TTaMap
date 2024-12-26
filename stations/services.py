@@ -28,13 +28,10 @@ def get_all_stations_data():
         try:
             response = requests.get(url, timeout=5)
             response.raise_for_status()
-
             data = response.json()
-
             rows = data.get('rentBikeStatus', {}).get('row', [])
             if not rows:
                 break
-
             filtered_data = [
                 station for station in rows
                 if float(station.get('stationLatitude', 0)) != 0 and float(station.get('stationLongitude', 0)) != 0
