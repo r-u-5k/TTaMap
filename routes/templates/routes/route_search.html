@@ -72,7 +72,7 @@
         } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
           alert('검색 결과가 없습니다.');
         } else {
-          alert('검색 중 문제가 발생했습니다.');
+          alert('검색 중 문제 발생');
           console.error('검색 실패. 상태 코드:', status);
         }
       });
@@ -143,6 +143,7 @@
                 parseFloat(station.stationLongitude)
             );
 
+            // 커스텀 오버레이 생성
             var customOverlay = new kakao.maps.CustomOverlay({
               position: position,
               content: content,
@@ -150,7 +151,7 @@
             });
           });
         })
-        .catch(error => console.error("대여소 데이터를 불러오는 중 오류:", error));
+        .catch(error => console.error("대여소 데이터를 불러오는 중 오류 발생: ", error));
 
     // 경로 검색 버튼
     document.getElementById('searchRoute').addEventListener('click', function () {

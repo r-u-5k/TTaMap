@@ -66,9 +66,6 @@ def simple_route_view(request):
     end_lat = request.GET.get('elat')
     end_lng = request.GET.get('elng')
 
-    if not (start_lat and start_lng and end_lat and end_lng):
-        return HttpResponseBadRequest("출발지와 도착지의 좌표가 필요합니다.")
-
     data = get_simple_route(float(start_lat), float(start_lng), float(end_lat), float(end_lng))
     return JsonResponse(data, safe=False)
 
@@ -80,8 +77,5 @@ def route_view(request):
 def route_result_view(request):
     route_data = request.GET.get('routeData')
     if route_data:
-        try:
-            route_data = json.loads(route_data)
-        except json.JSONDecodeError:
-            route_data = None
+        route_data = json.loads(route_data)
     return render(request, 'routes/route_result.html', {'route_data': route_data})

@@ -2,7 +2,7 @@ import requests
 from django.shortcuts import render
 from django.http import JsonResponse
 import params as pa
-from .services import get_station_data, get_all_stations_data
+from stations.services import get_station_data, get_all_stations_data
 
 
 def map_view(request):
